@@ -5,7 +5,6 @@ import typing
 import xml.parsers.expat as expat
 import zipfile
 import _util
-import _model
 
 def process(zfn:str, p:typing.Callable[[str,io.BytesIO],None]):
 
