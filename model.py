@@ -48,17 +48,17 @@ class Relationships:
     def __init__(self, f:io.BytesIO):
 
         xp = expat.ParserCreate()
-        def xmldeclh(vers,enc,stal):
-
-            self._xmldecl = XmlDecl(version=vers,encoding=enc,standalone=bool(stal))
-
-        xp.XmlDeclHandler = xmldeclh
         class _State(enum.Enum):
 
             INIT          = 0
             RELATIONSHIPS = 1
 
         st = [_State.INIT]
+        def xmldeclh(vers,enc,stal):
+
+            self._xmldecl = XmlDecl(version=vers,encoding=enc,standalone=bool(stal))
+
+        xp.XmlDeclHandler = xmldeclh
         self._rels = {}
         def startelemh(name:str, attrs:dict[str,str]):
 
