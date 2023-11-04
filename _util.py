@@ -2,12 +2,11 @@ import zipfile
 
 def internal_files(zf:zipfile.ZipFile, prep=lambda: None):
 
-    for finfo in zf.filelist:
+    for fn in sorted(finfo.filename for finfo in zf.filelist):
 
-        prep(finfo)
-        with zf.open(finfo.filename, mode='r') as f:
+        with zf.open(fn, mode='r') as f:
 
-            yield (finfo.filename,f,)
+            yield (fn,f,)
 
 def internal_files_by_name(zfn:str, prep=lambda f: None):
 
