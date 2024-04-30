@@ -175,8 +175,11 @@ def load_etree_map_diff_print(zfn1:str,zfn2:str):
 
 if __name__ == '__main__':
 
+    import os
+
+    os.chdir('test-files')
     for zfn in (
-        r'2.docx',
+        r'example.docx',
         ):
 
         print(zfn,end='\n\n')
@@ -186,11 +189,12 @@ if __name__ == '__main__':
         #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f))                                  , print(line_sep()))) # print all
         #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f))                                  , print(line_sep())) if fn == '_rels/.rels' else None) # print only rels
         #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f), filter=lambda e: e.name == "***"), print(line_sep()))) # print only unknown
-        #docx = model.DocX(zfn)
         #print(docx._rels)
 
 
-    dump_etree_map(r'3.2.docx', load_etree_map(r'3.docx'))
+    dump_etree_map(r'example.copy.docx', load_etree_map(r'example.docx'))
+    docx = model.DocX(r'example.docx')
+    docx.save(r'example.copy.docx')
     print('\nDiff')
-    count_types_all_diff_print(r'3.docx',r'3.2.docx')
-    #load_etree_map_diff_print (r'3.docx',r'3.2.docx')
+    count_types_all_diff_print(r'example.copy.docx',r'example.docx')
+    #load_etree_map_diff_print (r'3.docx',r'3.3.docx')
