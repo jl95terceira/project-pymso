@@ -16,7 +16,9 @@ project_package -> the project module, which contains the package / the module p
 
 In <code>package</code>:
 
-There are modules that correspond with the XML structure of MSO files. There is one class per module. The classes therein are simply called <code>Class</code> and are renamed on import in <code>__init__.py</code> accordingly. 
+There are modules that correspond with the XML structure of MSO files. There is one class per module. 
+
+The classes therein are simply called <code>Class</code> and the modules are disguised as those classes by calling <code>sys.modules[\_\_name\_\_] = Class</code> after the class' definition. 
 
 There is a <code>_util</code> module for re-usable source that is not intended as part of the public API.
 
