@@ -4,26 +4,28 @@ import io
 import xml.parsers.expat as expat
 import zipfile
 
-def internal_files(zf:zipfile.ZipFile):
+def internal_files(zf:zipfile.ZipFile|str):
 
-    for fn in sorted(finfo.filename for finfo in zf.filelist):
+     if isinstance(zf, str):
 
-        with zf.open(fn, mode='r') as f:
+          with zipfile.ZipFile(zf, mode='r') as zf_:
 
-            yield (fn,f,)
+               yield from internal_files(zf_)
 
-def internal_files_by_name(zfn:str):
+          return
 
-    with zipfile.ZipFile(zfn, mode='r') as zf:
-
-        yield from internal_files(zf)
+     for fn in sorted(finfo.filename for finfo in zf.filelist):
+          
+          with zf.open(fn, mode='r') as f:
+               
+               yield (fn,f,)
 
 @dataclasses.dataclass
 class Element():
 
-        name    :str             = ""
-        args    :tuple           = ()
-        children:list['Element'] = dataclasses.field(default_factory=lambda: [])
+     name    :str             = ""
+     args    :tuple           = tuple()
+     children:list['Element'] = dataclasses.field(default_factory=lambda: list())
 
 class ELEMENT_NAMES:
      
@@ -55,9 +57,9 @@ def load_etree(f:io.BytesIO):
     xp.ParseFile(f)
     return stack[-1]
 
-def load_etree_map(zfn:str):
+def load_etree_map(zf:zipfile.ZipFile|str):
 
-    return {fn:load_etree(f) for fn,f in internal_files_by_name(zfn)}
+    return {fn:load_etree(f) for fn,f in internal_files(zf)}
 
 _XML_CHAR_ESCAPE_TUPLES = (
     ('&' ,'&amp;'),
