@@ -22,15 +22,31 @@ There is a <code>_util</code> module for re-usable source that is not intended a
 
 # Contributing
 
-MSO files are zip files with XML files therein. The plan is to gradually change the implementation so that
+The plan is to gradually add functionality to this module while maintaining the property of losslessness on writing files back, so that
 
 <ul>
 
-<li>At the beginning, this module just reads all XML files as a map of element trees that can be saved right back. Let's not implement any functions to manipulate the document, at this point.</li>
+<li>
+  
+At the beginning, this module just reads all XML files as a map of element object trees (got RAM?) that can be saved right back. Functions to manipulate the document, if any at this point, manipulate the element trees directly.
 
-<li>Gradually, each XML file will be read to and written from not as an element tree but as an instance of a class that is more optimized for the XML structure. Functions to manipulate the document will act on these instances. The remaining XML files are still loaded as element trees and we don't worry about them yet.</li>
+(MSO files are zip files with XML files therein, in case you didn't know.)
 
-<li>At the very end (in a million years 😄), all XML files are loaded as instances of classes that are optimal for their structure. No more element trees, ever again.</li>
+</li>
+
+<li>
+  
+Gradually, each XML file will be read to and written from not as an element tree but as an instance of a class that is more optimized for the XML structure. Functions to manipulate the document will act on these instances.
+
+To pull-parse the XML, use <code>xml.parsers.expat</code> from the standard library.
+
+</li>
+
+<li>
+  
+At the very end (in a million years 😄), all XML files are loaded as instances of classes that are optimal for their structure. No more element trees, ever again.
+
+</li>
 
 </ul>
 
