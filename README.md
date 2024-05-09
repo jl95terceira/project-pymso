@@ -1,5 +1,7 @@
 Microsoft Office file lossless reader and writer
 
+Python ≥ v<b>3.12</b>
+
 # Why?
 
 Apparently, all Python modules that exist currently that deal with reading & writing MSO files may lose information on writing files back after reading them - for example, if they have figures, charts, etc. Let's change that.
