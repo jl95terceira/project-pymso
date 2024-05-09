@@ -1,7 +1,10 @@
 import dataclasses
 import enum
 import io
+import sys
 import xml.parsers.expat as expat
+
+from   . import Relationships
 from   ._util import *
 
 class Class:
@@ -9,7 +12,7 @@ class Class:
     def __init__(self, docxfn:str):
 
         self._generic:dict[str,Element] = {}
-        for fn,f in internal_files_by_name(docxfn):
+        for fn,f in internal_files(docxfn):
 
             if fn == '_rels/.rels' and False:
 
@@ -29,3 +32,4 @@ class Class:
 
                     dump_etree(f, et)
 
+sys.modules[__name__] = Class
