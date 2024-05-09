@@ -3,8 +3,10 @@ import io
 import operator
 import typing
 
-import model
-from   _util import *
+from   package       import model
+from   package._util import *
+
+TESTS_DIRECTORY = os.path.join('tests','files')
 
 def line_sep(prefix:str=''):
 
@@ -177,7 +179,7 @@ if __name__ == '__main__':
 
     import os
 
-    os.chdir('test-files')
+    os.chdir(TESTS_DIRECTORY)
     for zfn in (
         r'example.docx',
         ):
