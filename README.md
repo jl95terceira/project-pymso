@@ -22,19 +22,11 @@ In <code>package</code>:
 
 <li>
   
-There are modules that correspond with the XML structure of MSO files. There is one class per module.  Each class therein is simply named <code>Class</code> and it is itself disguised as the module by calling 
+There are modules that contain classes that correspond with the internal structure of MSO files. 
 
-```
-sys.modules[__name__] = Class
-```
+<code>DocX</code> is intended as the class of the doc (Word) root object i.e. the object that contains all the data from the MSO file.
 
-after the class' definition, so that, when (as an example) we
-
-```
-import DocX
-```
-
-, actually what is imported is <code>DocX.Class</code> (as <code>DocX</code>).
+<i>To do: <code>XlsX</code> class for xl (Excel) files</i>
 
 </li><li>
   
@@ -54,7 +46,7 @@ The plan is to gradually add functionality to this module while maintaining the 
   
 At the beginning, this module just reads all XML files as a map of element object trees (got RAM?) that can be saved right back. Functions to manipulate the document, if any at this point, manipulate the element trees directly.
 
-(MSO files are zip files with XML files therein, in case you didn't know.)
+<i>MSO files are zip files with XML files therein, in case you didn't know.</i>
 
 </li>
 
