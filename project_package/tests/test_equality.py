@@ -62,7 +62,7 @@ class TestsForDocX       (unittest.TestCase):
 
         doc2 = DocX.load_from_file(test.OFFICE_FILES.EXAMPLE)
         self.assertEqual(self.doc1,doc2,msg="docs loaded from the same file are equal")
-        self.assertEqual(self.doc1.rels,doc2.rels,msg="equal relationships")
+        self.assertEqual(self.doc1._data,doc2._data,msg="equal data")
 
     def test_DocX_not_equal(self): 
 

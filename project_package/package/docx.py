@@ -25,11 +25,13 @@ class DocX:
         self                    = DocX()
         for fn,f in internal_files(docf):
 
-#            if fn == '_rels/.rels':
-            if fn == '_rels/.rels' and False:
+            # relationships
+            if fn == DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS:
+#            if False:
 
                 self._data.rels = Relationships.get(f)
             
+            # other (into element trees)
             else:
 
                 self._etrees[fn] = load_etree(f)
@@ -46,6 +48,12 @@ class DocX:
 
             return
         
+        # relationships
+        with docf.open(DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS, mode='w') as f:
+
+            self._data.rels.put(f)
+
+        # other (out of element trees)
         for fn,et in self._etrees.items():
 
             with docf.open(name=fn, mode='w') as f:

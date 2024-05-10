@@ -5,6 +5,10 @@ import sys
 import xml.parsers.expat as expat
 import zipfile
 
+class DOCX_INTERNAL_FILE_PATHS:
+
+     RELATIONSHIPS = '_rels/.rels'
+
 def internal_files(zf:zipfile.ZipFile|str):
 
      if isinstance(zf, str):
