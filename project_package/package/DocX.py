@@ -4,32 +4,55 @@ import io
 import sys
 import xml.parsers.expat as expat
 
-from   . import Relationships
+from   .rels import *
 from   ._util import *
 
-class Class:
+@dataclasses.dataclass
+class _DocXData:
 
-    def __init__(self, docxfn:str):
+    rels:Relationships = dataclasses.field(default_factory=lambda: Relationships())
 
-        self._generic:dict[str,Element] = {}
-        for fn,f in internal_files(docxfn):
+class DocX:
 
+    def __init__(self):
+
+        self._etrees:dict[str,Element] = {}
+        self._data  :_DocXData         = _DocXData()
+
+    @staticmethod
+    def load_from_file(docf:zipfile.ZipFile|str):
+
+        self                    = DocX()
+        for fn,f in internal_files(docf):
+
+#            if fn == '_rels/.rels':
             if fn == '_rels/.rels' and False:
 
-                self._rels = Relationships(f)
+                self._data.rels = Relationships.get(f)
             
             else:
 
-                self._generic[fn] = load_etree(f)
+                self._etrees[fn] = load_etree(f)
 
-    def save(self,docxfn:str):
+        return self
 
-        with zipfile.ZipFile(file=docxfn, mode='w') as zf:
+    def save_to_file  (self, docf:zipfile.ZipFile|str):
 
-            for fn,et in self._generic.items():
+        if isinstance(docf, str):
 
-                with zf.open(name=fn, mode='w') as f:
+            with zipfile.ZipFile(file=docf, mode='w') as docf:
 
-                    dump_etree(f, et)
+                self.save_to_file(docf)
 
-sys.modules[__name__] = Class
+            return
+        
+        for fn,et in self._etrees.items():
+
+            with docf.open(name=fn, mode='w') as f:
+
+                dump_etree(f, et)
+
+    def __eq__(self, other:'DocX'):
+
+        return self._etrees == other._etrees and \
+               self._data   == other._data

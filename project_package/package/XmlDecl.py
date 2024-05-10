@@ -3,10 +3,8 @@ import sys
 from   ._util import *
 
 @dataclasses.dataclass
-class Class:
+class XmlDeclaration:
 
     version   :str
     encoding  :str
     standalone:bool
-
-sys.modules[__name__] = Class

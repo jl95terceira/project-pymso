@@ -1,5 +1,5 @@
 import unittest
 
-from   . import DocX
-from   . import XmlDecl
-from   . import Relationships
+from .docx    import *
+from .xmldecl import *
+from .rels    import *
