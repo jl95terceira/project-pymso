@@ -18,11 +18,31 @@ project_package -> the project module, which contains the package / the module p
 
 In <code>package</code>:
 
-There are modules that correspond with the XML structure of MSO files. There is one class per module. 
+<ul>
 
-The classes therein are simply called <code>Class</code> and the modules are disguised as those classes by calling <code>sys.modules[\_\_name\_\_] = Class</code> after the class' definition. 
+<li>
+  
+There are modules that correspond with the XML structure of MSO files. There is one class per module.  Each class therein is simply named <code>Class</code> and it is itself disguised as the module by calling 
 
+```
+sys.modules[__name__] = Class
+```
+
+after the class' definition, so that, when (as an example) we
+
+```
+import DocX
+```
+
+, actually what is imported is <code>DocX.Class</code> (as <code>DocX</code>).
+
+</li><li>
+  
 There is a <code>_util</code> module for re-usable source that is not intended as part of the public API.
+
+</li>
+
+</ul>
 
 # Contributing
 
@@ -56,12 +76,17 @@ At the very end (in a million years 😄), all XML files are loaded as instances
 
 # Testing
 
-Use <code>unittest</code>. Keep all tests in module <code>project_structure.tests</code>. Read up on <a href="https://docs.python.org/3/library/unittest.html">the docs</a>.
-
-Run
+Use <code>unittest</code>. Run
 
 ```
 python -m unittest
 ```
 
-from the root directory.  (For this methodology to work smoothly is why the project files are organized as they are. It allows for the tests module to relative-import <code>package</code> and it also helps the IDE - VS Code, as a good example - figure out the imports).
+from the root directory.  To add new tests for the project, place them in module <code>project_structure.tests</code>. From inside the test scripts, import the components to be tested with
+
+```
+import ..package
+from ..package import {whatever there is to import}
+```
+
+ Read up on <a href="https://docs.python.org/3/library/unittest.html">the docs</a>.
