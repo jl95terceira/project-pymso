@@ -15,7 +15,11 @@ class Relationship(ElementLike):
 
     def to_xml(self, id:str):
 
-        return f'<Relationship Id="{id}" Type="{self.type}" Target="{self.target}"/>{''.join(self.tail)}'
+        return as_xml_elem(name='Relationship',
+                           attrs={'Id'    :id,
+                                  'Type'  :self.type,
+                                  'Target':self.target},
+                           tail =''.join(self.tail))
 
 @dataclasses.dataclass
 class Relationships:
@@ -77,9 +81,6 @@ class Relationships:
     def put(self, f:io.BytesIO):
 
         f.write(self.xmld.to_xml().encode())
-        f.write(f'<Relationships xmlns="{self.xmlns}">'.encode())
-        for id,rel in self.dictt.items():
-
-            f.write(rel.to_xml(id).encode())
-
-        f.write(f'</Relationships>'.encode())
+        f.write(as_xml_elem(name ='Relationships', 
+                            attrs={'xmlns':self.xmlns}, 
+                            inner=''.join(rel.to_xml(id) for id,rel in self.dictt.items())).encode())

@@ -141,3 +141,7 @@ MISSING = object()
 class ElementLike:
 
     tail:list[str] = dataclasses.field(default_factory=lambda: [])
+
+def as_xml_elem(name: str, attrs:dict[str,str], inner:str='', force_explicit_end=False, tail:str=''):
+
+     return f'<{name}{'' if not attrs else f' {' '.join(f'{k}="{v}"' for k,v in attrs.items())}'}{('/>' if not force_explicit_end else f'></{name}>') if not inner else f'>{inner}</{name}>'}{tail}'
