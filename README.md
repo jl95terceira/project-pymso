@@ -9,11 +9,11 @@ Apparently, all Python modules that exist currently that deal with reading & wri
 # Getting around
 
 ```
-project_package -> the project module, which contains the package / the module proper and the test module.
+project_package -> the project module, which contains the the module proper and the test module
 │
-├───package -> the package / module proper under development.
+├─package -> the module proper under development
 │
-└───tests -> the test module.
+└─tests   -> the test module
 ```
 
 In <code>package</code>:
@@ -24,9 +24,9 @@ In <code>package</code>:
   
 There are modules that contain classes that correspond with the internal structure of MSO files. 
 
-<code>DocX</code> is intended as the class of the doc (Word) root object i.e. the object that contains all the data from the MSO file.
+<code>DocX</code> is intended as the class of the root object i.e. the object that contains all the data from the MSO doc (Word) file.
 
-<i>To do: <code>XlsX</code> class for xl (Excel) files</i>
+<i>To do: develop <code>XlsX</code> class for xl (Excel) files</i>
 
 </li><li>
   
@@ -54,7 +54,7 @@ At the beginning, this module just reads all XML files as a map of element objec
   
 Gradually, each XML file will be read to and written from not as an element tree but as an instance of a class that is more optimized for the XML structure. Functions to manipulate the document will act on these instances.
 
-To pull-parse the XML, use <code>xml.parsers.expat</code> from the standard library.
+To pull-parse the XML, use <code><a href="https://docs.python.org/3/library/pyexpat.html">xml.parsers.expat</code></a>.
 
 </li>
 
@@ -68,17 +68,17 @@ At the very end (in a million years 😄), all XML files are loaded as instances
 
 # Testing
 
-Use <code>unittest</code>. Run
+Use <code><a href="https://docs.python.org/3/library/unittest.html">unittest</a></code>. Run
 
 ```
 python -m unittest
 ```
 
-from the root directory.  To add new tests for the project, place them in module <code>project_structure.tests</code>. From inside the test scripts, import the components to be tested with
+from the root directory (outside of <code>project_package</code>). 
+
+To add new tests for the project, place them in module <code>project_structure.tests</code>. From inside the test scripts, import the components to be tested with
 
 ```
 import ..package
 from ..package import {whatever there is to import}
 ```
-
- Read up on <a href="https://docs.python.org/3/library/unittest.html">the docs</a>.
