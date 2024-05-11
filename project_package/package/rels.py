@@ -10,23 +10,12 @@ from   .xmldecl import XmlDeclaration
 @dataclasses.dataclass
 class Relationship(ElementLike):
 
-    type  :str      = dataclasses.field(default=MISSING)
-    target:'Target' = dataclasses.field(default=MISSING)
+    type  :str = dataclasses.field(default=MISSING)
+    target:str = dataclasses.field(default=MISSING)
 
-    class Target(enum.Enum):
-
-        APP      = 0
-        CORE     = 1
-        DOCUMENT = 2
-    
     def to_xml(self, id:str):
 
-        return f'<Relationship Id="{id}" Type="{self.type}" Target="{_REL_TARGET_RMAP[self.target]}"/>{''.join(self.tail)}'
-
-_REL_TARGET_MAP  = {'docProps/app.xml' : Relationship.Target.APP,
-                    'docProps/core.xml': Relationship.Target.CORE,
-                    'word/document.xml': Relationship.Target.DOCUMENT}
-_REL_TARGET_RMAP = {v:k for k,v in _REL_TARGET_MAP.items()}
+        return f'<Relationship Id="{id}" Type="{self.type}" Target="{self.target}"/>{''.join(self.tail)}'
 
 @dataclasses.dataclass
 class Relationships:
@@ -68,8 +57,8 @@ class Relationships:
 
                 if name != 'Relationship': raise Exception('found in Relationships an element that is not a Relationship')
                 # ...
-                rel                     = Relationship(type  =                attrs['Type'],
-                                                       target=_REL_TARGET_MAP[attrs['Target']])
+                rel                     = Relationship(type  =attrs['Type'],
+                                                       target=attrs['Target'])
                 self.dictt[attrs['Id']] = rel
                 curp.x                  = rel
 
