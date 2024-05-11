@@ -7,11 +7,11 @@ _XML_DECLARATION_STANDALONE_REPR_MAP = {True :'yes',
                                         False:'no',}
 
 @dataclasses.dataclass
-class XmlDeclaration:
+class XmlDeclaration(ElementLike):
 
-    version   :str  = dataclasses.field(default_factory=lambda: "0.0")
-    encoding  :str  = dataclasses.field(default_factory=lambda: "???")
-    standalone:bool = dataclasses.field(default_factory=lambda: True)
+    version   :str  = dataclasses.field(default="1.0")
+    encoding  :str  = dataclasses.field(default="UTF-8")
+    standalone:bool = dataclasses.field(default=True)
 
     @staticmethod
     def expat_handler(cb:typing.Callable[['XmlDeclaration'],None]):
@@ -24,4 +24,4 @@ class XmlDeclaration:
 
     def to_xml(self):
 
-        return f'<?xml version="{self.version}" encoding="{self.encoding}" standalone="{_XML_DECLARATION_STANDALONE_REPR_MAP[self.standalone]}"?>'
+        return f'<?xml version="{self.version}" encoding="{self.encoding}" standalone="{_XML_DECLARATION_STANDALONE_REPR_MAP[self.standalone]}"?>{''.join(self.tail)}'

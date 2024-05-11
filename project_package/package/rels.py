@@ -4,14 +4,14 @@ import io
 import sys
 import xml.parsers.expat as expat
 
-from   ._util import *
+from   ._util   import *
 from   .xmldecl import XmlDeclaration
 
 @dataclasses.dataclass
-class Relationship:
+class Relationship(ElementLike):
 
-    type  :str
-    target:'Target'
+    type  :str      = dataclasses.field(default=MISSING)
+    target:'Target' = dataclasses.field(default=MISSING)
 
     class Target(enum.Enum):
 
@@ -21,7 +21,7 @@ class Relationship:
     
     def to_xml(self, id:str):
 
-        return f'<Relationship Id="{id}" Type="{self.type}" Target="{_REL_TARGET_RMAP[self.target]}"/>'
+        return f'<Relationship Id="{id}" Type="{self.type}" Target="{_REL_TARGET_RMAP[self.target]}"/>{''.join(self.tail)}'
 
 _REL_TARGET_MAP  = {'docProps/app.xml' : Relationship.Target.APP,
                     'docProps/core.xml': Relationship.Target.CORE,
@@ -31,8 +31,8 @@ _REL_TARGET_RMAP = {v:k for k,v in _REL_TARGET_MAP.items()}
 @dataclasses.dataclass
 class Relationships:
 
-    xd   :XmlDeclaration         = dataclasses.field(default_factory=lambda: XmlDeclaration())
-    xmlns:str                    = dataclasses.field(default_factory=lambda: "")
+    xmld :XmlDeclaration         = dataclasses.field(default_factory=lambda: XmlDeclaration())
+    xmlns:str                    = dataclasses.field(default        ="http://schemas.openxmlformats.org/package/2006/relationships")
     dictt:dict[str,Relationship] = dataclasses.field(default_factory=lambda: {})
 
     @staticmethod
@@ -45,13 +45,15 @@ class Relationships:
             INIT          = 0
             RELATIONSHIPS = 1
 
-        st = [_State.INIT]
+        st   = [_State.INIT]
+        curp = Pointer[ElementLike]()
         # handle XML declaration
-        def _f(xd:XmlDeclaration):
+        def XML_DECL_CB(xmld:XmlDeclaration):
 
-            self.xd = xd
+            self.xmld = xmld
+            curp.x    = xmld
 
-        xp.XmlDeclHandler = XmlDeclaration.expat_handler(_f)
+        xp.XmlDeclHandler = XmlDeclaration.expat_handler(XML_DECL_CB)
         # handle elements
         def START_ELEM_HANDLER(name :str, attrs:dict[str,str]):
 
@@ -66,17 +68,26 @@ class Relationships:
 
                 if name != 'Relationship': raise Exception('found in Relationships an element that is not a Relationship')
                 # ...
-                self.dictt[attrs['Id']] = Relationship(type  =                attrs['Type'],
+                rel                     = Relationship(type  =                attrs['Type'],
                                                        target=_REL_TARGET_MAP[attrs['Target']])
+                self.dictt[attrs['Id']] = rel
+                curp.x                  = rel
 
         xp.StartElementHandler = START_ELEM_HANDLER
+        xp.EndElementHandler   = lambda name: None
+        def DEFAULT_HANDLER(data: str):
+
+            curp.x.tail.append(data)
+            pass
+
+        xp.DefaultHandler = DEFAULT_HANDLER
         # do it
         xp.ParseFile(f)
         return self
 
     def put(self, f:io.BytesIO):
 
-        f.write(self.xd.to_xml().encode())
+        f.write(self.xmld.to_xml().encode())
         f.write(f'<Relationships xmlns="{self.xmlns}">'.encode())
         for id,rel in self.dictt.items():
 

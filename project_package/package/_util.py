@@ -129,3 +129,15 @@ def dump_etree_map(zfn:str,et_map:dict[str,Element]):
 
                     print(f'Dumping to {fn}')
                     dump_etree(f,et)
+
+@dataclasses.dataclass
+class Pointer[T]:
+
+     x:T = dataclasses.field(default_factory=lambda: None)
+
+MISSING = object()
+
+@dataclasses.dataclass
+class ElementLike:
+
+    tail:list[str] = dataclasses.field(default_factory=lambda: [])
