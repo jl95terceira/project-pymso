@@ -60,7 +60,7 @@ To pull-parse the XML, use <code><a href="https://docs.python.org/3/library/pyex
 
 <li>
   
-At the very end (in a million years 😄), all XML files are loaded as instances of classes that are optimal for their structure. No more element trees, ever again.
+At the very end, all XML files are loaded as instances of classes that are optimal for their structure. No more element trees, ever again.
 
 </li>
 
