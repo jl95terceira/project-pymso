@@ -54,7 +54,7 @@ At the beginning, this module just reads all XML files as a map of element objec
   
 Gradually, each XML file will be read to and written from not as an element tree but as an instance of a class that is more optimized for the XML structure. Functions to manipulate the document will act on these instances.
 
-To pull-parse the XML, use <code><a href="https://docs.python.org/3/library/pyexpat.html">xml.parsers.expat</code></a>.
+To stream-parse the XML, use <code><a href="https://docs.python.org/3/library/pyexpat.html">xml.parsers.expat</code></a>.
 
 </li>
 
