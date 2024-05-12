@@ -41,20 +41,20 @@ class ELEMENT_NAMES:
 def load_etree(f:io.BytesIO):
 
     stack:list[Element] = [Element()]
-    upstacker             = lambda name: lambda *aa: (stack.append(Element(name=name,args=aa)),stack[-2].children.append(stack[-1]),)
-    downstacker           = lambda     : lambda *aa: (stack.pop(),)
-    stacker               = lambda name: lambda *aa: (stack[-1].children.append(Element(name=name ,args=aa)),)
+    def upstacker  (name:str): return lambda *aa: (stack.append(Element(name=name,args=aa)),stack[-2].children.append(stack[-1]),)
+    def downstacker()        : return lambda *aa: (stack.pop(),)
+    def appender   (name:str): return lambda *aa: (stack[-1].children.append(Element(name=name ,args=aa)),)
     xp = expat.ParserCreate()
-    xp.XmlDeclHandler           = stacker    (ELEMENT_NAMES.XMLDECL)
+    xp.XmlDeclHandler           = appender   (ELEMENT_NAMES.XMLDECL)
     xp.StartDoctypeDeclHandler  = upstacker  (ELEMENT_NAMES.DOCTYPE)
     xp.EndDoctypeDeclHandler    = downstacker()
     xp.StartElementHandler      = upstacker  (ELEMENT_NAMES.ELEMENT)
-    xp.ElementDeclHandler       = stacker    (ELEMENT_NAMES.ELEMDECL)
+    xp.ElementDeclHandler       = appender   (ELEMENT_NAMES.ELEMDECL)
     xp.EndElementHandler        = downstacker()
     xp.StartCdataSectionHandler = upstacker  (ELEMENT_NAMES.CDATASEC)
-    xp.CharacterDataHandler     = stacker    (ELEMENT_NAMES.CDATA)
+    xp.CharacterDataHandler     = appender   (ELEMENT_NAMES.CDATA)
     xp.EndCdataSectionHandler   = downstacker()
-    xp.DefaultHandlerExpand     = stacker    (ELEMENT_NAMES.___)
+    xp.DefaultHandlerExpand     = appender   (ELEMENT_NAMES.___)
     xp.ParseFile(f)
     return stack[-1]
 
