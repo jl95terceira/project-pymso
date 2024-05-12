@@ -189,7 +189,7 @@ if __name__ == '__main__':
         print('\n'.join(fn for fn,f in internal_files(zfn)), end='\n\n')
         #count_types_all_print(zfn) # count all element types
         #count_types_all_print(zfn,filter_name=lambda name: name in {'XmlDecl','StartElementHandler','EndElementHandler','Other'}) # count rarer element types
-        #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f))                                  , print(line_sep()))) # print all
+        process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f))                                  , print(line_sep()))) # print all
         #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f))                                  , print(line_sep())) if fn == '_rels/.rels' else None) # print only rels
         #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f), filter=lambda e: e.name == "***"), print(line_sep()))) # print only unknown
         #print(docx._rels)

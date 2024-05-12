@@ -5,10 +5,6 @@ import sys
 import xml.parsers.expat as expat
 import zipfile
 
-class DOCX_INTERNAL_FILE_PATHS:
-
-     RELATIONSHIPS = '_rels/.rels'
-
 def internal_files(zf:zipfile.ZipFile|str):
 
      if isinstance(zf, str):
@@ -145,3 +141,21 @@ class ElementLike:
 def as_xml_elem(name: str, attrs:dict[str,str], inner:str='', force_explicit_end=False, tail:str=''):
 
      return f'<{name}{'' if not attrs else f' {' '.join(f'{k}="{v}"' for k,v in attrs.items())}'}{('/>' if not force_explicit_end else f'></{name}>') if not inner else f'>{inner}</{name}>'}{tail}'
+
+class Enum[T]:
+
+     def __init__(self):
+
+          self._list  :list[T] = list()
+          self._set   :set [T] = set ()
+
+     def __call__(self, x:T):
+
+          self._list.append(x)
+          self._set .add   (x)
+          return x
+     
+     def __iter__    (self)     : return iter(self._list)
+
+     def __contains__(self, x:T): return x in self._set
+
