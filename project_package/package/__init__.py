@@ -1,19 +1,21 @@
 import dataclasses
 import xml.parsers.expat as expat
 
-from .      import xml, rels as rel_, cont
+from .      import cont, xml, rels as rels, docprops as docprops
 from ._util import *
 
 class _DOCX_INTERNAL_FILE_PATHS:
 
      RELATIONSHIPS = '_rels/.rels'
      CONTENT_TYPES = '[Content_Types].xml'
+     DOCPROPS_APP  = 'docProps/app.xml'
 
 @dataclasses.dataclass
 class _DocXData:
 
-    types:cont.Types         = dataclasses.field(default_factory=lambda: cont.Types        ())
-    rels :rel_.Relationships = dataclasses.field(default_factory=lambda: rel_.Relationships())
+    types:cont.Types           = dataclasses.field(default_factory=lambda: cont.Types        ())
+    rels :'rels.Relationships' = dataclasses.field(default_factory=lambda: rels.Relationships())
+    props:'docprops.DocProps'  = dataclasses.field(default_factory=lambda: docprops.DocProps ())
 
 class DocX:
 
@@ -39,12 +41,17 @@ class DocX:
             # relationships
             if fn == _DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS:
 
-                self._data.rels = rel_.Relationships.get(f)
+                self._data.rels = rels.Relationships.get(f)
 
             # content types            
             elif fn == _DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES:
 
                 self._data.types = cont.Types.get(f)
+
+            # document properties - app
+            elif fn == _DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP:
+
+                self._data.props.app = docprops.app.Properties.get(f)
 
             # other (as element trees - not implemented yet)
             else:
@@ -76,6 +83,11 @@ class DocX:
         with docf.open(_DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES, mode='w') as f:
 
             self._data.types.put(f)
+
+        # content types
+        with docf.open(_DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP, mode='w') as f:
+
+            self._data.props.app.put(f)
 
         # other (as element trees - not implemented yet)
         for fn,et in self._etrees.items():

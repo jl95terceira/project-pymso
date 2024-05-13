@@ -7,7 +7,7 @@ _XML_DECLARATION_STANDALONE_REPR_MAP = {True :'yes',
                                         False:'no',}
 
 @dataclasses.dataclass
-class Declaration(ElementLike):
+class Declaration:
 
     version   :str  = dataclasses.field(default="1.0")
     encoding  :str  = dataclasses.field(default="UTF-8")
@@ -24,4 +24,4 @@ class Declaration(ElementLike):
 
     def to_xml(self):
 
-        return f'<?xml version="{self.version}" encoding="{self.encoding}" standalone="{_XML_DECLARATION_STANDALONE_REPR_MAP[self.standalone]}"?>{''.join(self.tail)}'
+        return f'<?xml version="{self.version}" encoding="{self.encoding}" standalone="{_XML_DECLARATION_STANDALONE_REPR_MAP[self.standalone]}"?>'

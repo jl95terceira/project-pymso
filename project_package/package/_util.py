@@ -133,14 +133,18 @@ class Pointer[T]:
 
 MISSING = object()
 
-@dataclasses.dataclass
-class ElementLike:
-
-    tail:list[str] = dataclasses.field(default_factory=lambda: [])
-
 def as_xml_elem(name: str, attrs:dict[str,str], inner:str='', force_explicit_end=False, tail:str=''):
 
      return f'<{name}{'' if not attrs else f' {' '.join(f'{k}="{v}"' for k,v in attrs.items())}'}{('/>' if not force_explicit_end else f'></{name}>') if not inner else f'>{inner}</{name}>'}{tail}'
+
+class EnumValues[T]:
+
+     def __init__(self,e:'Enum[T]'):
+
+          self._e = e
+     
+     def __iter__    (self)    : return self._e._list
+     def __contains__(self,x:T): return x in self._e._set
 
 class Enum[T]:
 
@@ -148,6 +152,7 @@ class Enum[T]:
 
           self._list  :list[T] = list()
           self._set   :set [T] = set ()
+          self._values         = EnumValues(self)
 
      def __call__(self, x:T):
 
@@ -155,7 +160,5 @@ class Enum[T]:
           self._set .add   (x)
           return x
      
-     def __iter__    (self)     : return iter(self._list)
-
-     def __contains__(self, x:T): return x in self._set
+     def values(self): return self._values
 

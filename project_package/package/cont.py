@@ -23,16 +23,12 @@ class DefaultElementAttributeNames:
 
     _e :Enum[str] = Enum()
     @classmethod
-    def values(clas): yield from clas._e
+    def values(clas): return clas._e.values()
 
     # enum BEGIN
     EXTENSION    = _e('Extension')
     CONTENT_TYPE = _e('ContentType')
     # enum END
-    
-    _set = set(r for r in _e)
-    @classmethod
-    def set(clas): return clas._set
 
 class OverrideElementDefinition:
     
@@ -50,16 +46,12 @@ class OverrideElementAttributeNames:
 
     _e :Enum[str] = Enum()
     @classmethod
-    def values(clas): yield from clas._e
+    def values(clas): return clas._e.values()
 
     # enum BEGIN
     PART_NAME    = _e('PartName')
     CONTENT_TYPE = _e('ContentType')
     # enum END
-    
-    _set = set(r for r in _e)
-    @classmethod
-    def set(clas): return clas._set
 
 @dataclasses.dataclass
 class TypesElementDefinition:
@@ -69,6 +61,20 @@ class TypesElementDefinition:
     """
 
     name = 'Types'
+
+class TypesElementAttributeNames:
+
+    """
+    Enumerate the names of all of the attributes of the types XML element
+    """
+
+    _e :Enum[str] = Enum()
+    @classmethod
+    def values(clas): return clas._e.values()
+
+    # enum BEGIN
+    XMLNS = _e('xmlns')
+    # enum END
 
 # XML parsing
 
@@ -87,7 +93,7 @@ class OverrideElementAttributeError(TypesXmlError): pass
 # Objects
 
 @dataclasses.dataclass
-class Default(ElementLike):
+class Default:
 
     content_type:str = dataclasses.field(default=MISSING)
 
@@ -95,11 +101,10 @@ class Default(ElementLike):
 
         return as_xml_elem(name =DefaultElementDefinition.name,
                            attrs={DefaultElementAttributeNames.EXTENSION   : extension,
-                                  DefaultElementAttributeNames.CONTENT_TYPE: self.content_type},
-                           tail =''.join(self.tail))
+                                  DefaultElementAttributeNames.CONTENT_TYPE: self.content_type})
         
 @dataclasses.dataclass
-class Override(ElementLike):
+class Override:
 
     content_type:str = dataclasses.field(default=MISSING)
 
@@ -107,8 +112,7 @@ class Override(ElementLike):
 
         return as_xml_elem(name =OverrideElementDefinition.name,
                            attrs={OverrideElementAttributeNames.PART_NAME   : part_name,
-                                  OverrideElementAttributeNames.CONTENT_TYPE: self.content_type},
-                           tail =''.join(self.tail))
+                                  OverrideElementAttributeNames.CONTENT_TYPE: self.content_type})
     
 @dataclasses.dataclass
 class Types:
@@ -128,12 +132,10 @@ class Types:
         self = Types()
         xp   = expat.ParserCreate()
         st   = Pointer(_TypesXmlParsingStates.INIT)
-        curp = Pointer[ElementLike]()
         # handle XML declaration
         def XML_DECL_CB(xmld:xml.Declaration):
 
             self.xmld = xmld
-            curp.x    = xmld
 
         xp.XmlDeclHandler = xml.Declaration.expat_handler(XML_DECL_CB)
         # handle elements
@@ -143,47 +145,38 @@ class Types:
 
                 if name != TypesElementDefinition.name: 
                     
-                    raise NotATypesElementError('found at root an element other than Types')
+                    raise NotATypesElementError(f'found at root an element other than Types: {name}')
                 
-                self.xns = attrs['xmlns']
+                self.xns = attrs[TypesElementAttributeNames.XMLNS]
                 st.x     = _TypesXmlParsingStates.IN_TYPES
             
             elif st.x is _TypesXmlParsingStates.IN_TYPES:
 
                 if name == DefaultElementDefinition.name:
 
-                    if not all(a in DefaultElementAttributeNames.set() for a in attrs):
+                    if not all(a in DefaultElementAttributeNames.values() for a in attrs):
                         
-                        raise DefaultElementAttributeError(f'got unexpected attributes of default element: {', '.join(map(repr, filter(lambda a: a not in DefaultElementAttributeNames.set(), attrs)))}')
+                        raise DefaultElementAttributeError(f'got unexpected attributes of default element: {', '.join(map(repr, filter(lambda a: a not in DefaultElementAttributeNames.values(), attrs)))}')
                 
                     t      = Default(content_type=attrs[DefaultElementAttributeNames.CONTENT_TYPE])
                     self.default_by_extension_dict[attrs[DefaultElementAttributeNames.EXTENSION]] \
                            = t
-                    curp.x = t
                     
                 elif name == OverrideElementDefinition.name:
 
-                    if not all(a in OverrideElementAttributeNames.set() for a in attrs):
+                    if not all(a in OverrideElementAttributeNames.values() for a in attrs):
                         
-                        raise OverrideElementAttributeError(f'got unexpected attributes of default element: {', '.join(map(repr, filter(lambda a: a not in OverrideElementAttributeNames.set(), attrs)))}')
+                        raise OverrideElementAttributeError(f'got unexpected attributes of default element: {', '.join(map(repr, filter(lambda a: a not in OverrideElementAttributeNames.values(), attrs)))}')
 
                     t      = Override(content_type=attrs[OverrideElementAttributeNames.CONTENT_TYPE])
                     self.override_by_part_name_dict[attrs[OverrideElementAttributeNames.PART_NAME]] \
                            = t
-                    curp.x = t
 
                 else:
 
                     raise NotATypeElementError('found in Types an element that is not a Type')
 
         xp.StartElementHandler = START_ELEM_HANDLER
-        xp.EndElementHandler   = lambda name: None
-        def DEFAULT_HANDLER(data: str):
-
-            curp.x.tail.append(data)
-            pass
-
-        xp.DefaultHandler = DEFAULT_HANDLER
         # do it
         xp.ParseFile(f)
         return self
@@ -195,8 +188,9 @@ class Types:
         """
 
         f.write(self.xmld.to_xml().encode())
-        f.write(as_xml_elem(name ='Types', 
-                            attrs={'xmlns':self.xns}, 
-                            inner=''.join((''.join(rel.to_xml(id) for id,rel in self.default_by_extension_dict .items()), 
-                                           ''.join(rel.to_xml(id) for id,rel in self.override_by_part_name_dict.items())))).encode())
+        f.write(b'\n')
+        f.write(as_xml_elem(name =TypesElementDefinition.name, 
+                            attrs={TypesElementAttributeNames.XMLNS:self.xns}, 
+                            inner=''.join((''.join(t.to_xml(id) for id,t in self.default_by_extension_dict .items()), 
+                                           ''.join(t.to_xml(id) for id,t in self.override_by_part_name_dict.items())))).encode())
         
