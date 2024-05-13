@@ -12,7 +12,7 @@ class _DOCX_INTERNAL_FILE_PATHS:
 @dataclasses.dataclass
 class _DocXData:
 
-    types:cont.Types         = dataclasses.field(default_factory=lambda: cont.Types ())
+    types:cont.Types         = dataclasses.field(default_factory=lambda: cont.Types        ())
     rels :rel_.Relationships = dataclasses.field(default_factory=lambda: rel_.Relationships())
 
 class DocX:
