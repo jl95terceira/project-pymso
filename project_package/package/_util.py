@@ -1,3 +1,4 @@
+import abc
 import dataclasses
 import functools
 import io
@@ -133,7 +134,7 @@ class Pointer[T]:
 
 MISSING = object()
 
-def as_xml_elem(name: str, attrs:dict[str,str], inner:str='', force_explicit_end=False, tail:str=''):
+def as_xml_elem(name: str, attrs:dict[str,str]={}, inner:str='', force_explicit_end=False, tail:str=''):
 
      return f'<{name}{'' if not attrs else f' {' '.join(f'{k}="{v}"' for k,v in attrs.items())}'}{('/>' if not force_explicit_end else f'></{name}>') if not inner else f'>{inner}</{name}>'}{tail}'
 
@@ -143,7 +144,7 @@ class EnumValues[T]:
 
           self._e = e
      
-     def __iter__    (self)    : return self._e._list
+     def __iter__    (self)    : return iter(self._e._list)
      def __contains__(self,x:T): return x in self._e._set
 
 class Enum[T]:
@@ -161,4 +162,3 @@ class Enum[T]:
           return x
      
      def values(self): return self._values
-

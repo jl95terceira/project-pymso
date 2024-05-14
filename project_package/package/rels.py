@@ -7,56 +7,31 @@ from   xml.parsers import expat
 from .      import xml
 from ._util import *
 
-# XML
-
-class RelationshipElementDefinition:
+class Definition:
     
     """
-    Define the "Relationship" XML element
+    Definition / Constants
     """
 
-    name = 'Relationship'
+    RELS_NAME = 'Relationships'
+    class RELS_ATTR_NAMES:
 
-class RelationshipElementAttributeNames:
+        _E :Enum[str] = Enum()
+        @classmethod
+        def values(clas): return clas._E.values()
+        XMLNS = _E('xmlns')
 
-    """
-    Enumerate the names of all of the attributes of the "Relationship" XML element
-    """
+    REL_NAME  = 'Relationship'
+    class REL_ATTR_NAMES:
 
-    _e :Enum[str] = Enum()
-    @classmethod
-    def values(clas): return clas._e.values()
+        _E :Enum[str] = Enum()
+        @classmethod
+        def values(clas): return clas._E.values()
+        ID     = _E('Id')
+        TYPE   = _E('Type')
+        TARGET = _E('Target')
 
-    # enum BEGIN
-    ID     = _e('Id')
-    TYPE   = _e('Type')
-    TARGET = _e('Target')
-    # enum END
-
-@dataclasses.dataclass
-class RelationshipsElementDefinition:
-
-    """
-    Define the "Relationships" (plural) XML element
-    """
-
-    name = 'Relationships'
-
-class RelationshipsElementAttributeNames:
-
-    """
-    Enumerate the names of all of the attributes of the "Relationships" XML element
-    """
-
-    _e :Enum[str] = Enum()
-    @classmethod
-    def values(clas): return clas._e.values()
-
-    # enum BEGIN
-    XMLNS = _e('xmlns')
-    # enum END
-
-# XML parsing
+# Parsing
 
 class _RelationshipsXmlParsingState : pass
 class _RelationshipsXmlParsingStates:
@@ -85,10 +60,10 @@ class Relationship:
 
     def to_xml(self, id:str):
 
-        return as_xml_elem(name =RelationshipElementDefinition.name,
-                           attrs={RelationshipElementAttributeNames.ID    : id,
-                                  RelationshipElementAttributeNames.TYPE  : self.type,
-                                  RelationshipElementAttributeNames.TARGET: self.target})
+        return as_xml_elem(name =Definition.REL_NAME,
+                           attrs={Definition.REL_ATTR_NAMES.ID    : id,
+                                  Definition.REL_ATTR_NAMES.TYPE  : self.type,
+                                  Definition.REL_ATTR_NAMES.TARGET: self.target})
 
 @dataclasses.dataclass
 class Relationships:
@@ -122,20 +97,20 @@ class Relationships:
 
             if st.x is _RelationshipsXmlParsingStates.INIT:
 
-                if name !=      RelationshipsElementDefinition.name:                         raise NotARelationshipsElementError     (f'found at root an element other than Relationships: {name}')
-                if not all(a in RelationshipsElementAttributeNames.values() for a in attrs): raise RelationshipsElementAttributeError(f'got unexpected attributes of relationship element: {', '.join(map(repr, filter(lambda a: a not in RelationshipsElementAttributeNames.values(), attrs)))}')
+                if name !=      Definition.RELS_NAME:                                raise NotARelationshipsElementError     (f'found at root an element other than {Definition.RELS_NAME}: {name}')
+                if not all(a in Definition.RELS_ATTR_NAMES.values() for a in attrs): raise RelationshipsElementAttributeError(f'got unexpected attributes of relationship element: {', '.join(map(repr, filter(lambda a: a not in Definition.RELS_ATTR_NAMES.values(), attrs)))}')
 
-                self.xns = attrs[RelationshipsElementAttributeNames.XMLNS]
+                self.xns = attrs[Definition.RELS_ATTR_NAMES.XMLNS]
                 st.x     = _RelationshipsXmlParsingStates.IN_RELATIONSHIPS
             
             elif st.x is _RelationshipsXmlParsingStates.IN_RELATIONSHIPS:
 
-                if name !=      RelationshipElementDefinition.name:                         raise NotARelationshipElementError     (f'found in Relationships an element that is not a Relationship: {name}')
-                if not all(a in RelationshipElementAttributeNames.values() for a in attrs): raise RelationshipElementAttributeError(f'got unexpected attributes of relationship element: {', '.join(map(repr, filter(lambda a: a not in RelationshipElementAttributeNames.values(), attrs)))}')
+                if name !=      Definition.REL_NAME:                                raise NotARelationshipElementError     (f'found in {Definition.RELS_NAME} an element that is not a {Definition.REL_NAME}: {name}')
+                if not all(a in Definition.REL_ATTR_NAMES.values() for a in attrs): raise RelationshipElementAttributeError(f'got unexpected attributes of relationship element: {', '.join(map(repr, filter(lambda a: a not in Definition.REL_ATTR_NAMES.values(), attrs)))}')
 
-                rel    = Relationship(type  =attrs[RelationshipElementAttributeNames.TYPE  ],
-                                      target=attrs[RelationshipElementAttributeNames.TARGET])
-                self.rel_by_id_dict[attrs[RelationshipElementAttributeNames.ID]] \
+                rel    = Relationship(type  =attrs[Definition.REL_ATTR_NAMES.TYPE  ],
+                                      target=attrs[Definition.REL_ATTR_NAMES.TARGET])
+                self.rel_by_id_dict[attrs[Definition.REL_ATTR_NAMES.ID]] \
                        = rel
 
         xp.StartElementHandler = START_ELEM_HANDLER
@@ -151,6 +126,6 @@ class Relationships:
 
         f.write(self.xmld.to_xml().encode())
         f.write(b'\n')
-        f.write(as_xml_elem(name =RelationshipsElementDefinition.name, 
-                            attrs={RelationshipsElementAttributeNames.XMLNS:self.xns}, 
+        f.write(as_xml_elem(name =Definition.RELS_NAME, 
+                            attrs={Definition.RELS_ATTR_NAMES.XMLNS:self.xns}, 
                             inner=''.join(rel.to_xml(id) for id,rel in self.rel_by_id_dict.items())).encode())

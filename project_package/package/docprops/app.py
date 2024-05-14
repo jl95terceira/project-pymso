@@ -5,33 +5,18 @@ from   xml.parsers import expat
 from ..      import xml
 from .._util import *
 
-# XML
+class Definition:
 
-@dataclasses.dataclass
-class PropertiesElementDefinition:
+    PROPS_NAME = 'Properties'
+    class PROPS_ATTR_NAMES:
 
-    """
-    Define the types XML element
-    """
+        _E :Enum[str] = Enum()
+        @classmethod
+        def values(clas): return clas._E.values()
+        XMLNS        = _E('xmlns')
+        XMLNS_V_TYPE = _E('xmlns:vt')
 
-    name = 'Properties'
-
-class PropertiesElementAttributeNames:
-
-    """
-    Enumerate the names of all of the attributes of the properties XML element
-    """
-
-    _e :Enum[str] = Enum()
-    @classmethod
-    def values(clas): yield from clas._e
-
-    # enum BEGIN
-    XMLNS  = _e('xmlns')
-    V_TYPE = _e('xmlns:vt')
-    # enum END
-
-# XML parsing
+# Parsing
 
 class _PropertiesXmlParsingState : pass
 class _PropertiesXmlParsingStates:
@@ -50,7 +35,7 @@ class PropertyElementAttributeError  (PropertiesXmlError): pass
 class Properties:
 
     xmld   :xml.Declaration = dataclasses.field(default_factory=lambda: xml.Declaration())
-    xns    :str             = dataclasses.field(default        ="http://schemas.openxmlformats.org/package/2006/content-types")
+    xns    :str             = dataclasses.field(default        ="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties")
     v_type :str             = dataclasses.field(default        ="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes")
     items  :dict[str,str]   = dataclasses.field(default_factory=lambda: {})
 
@@ -64,7 +49,7 @@ class Properties:
         self = Properties()
         xp   = expat.ParserCreate()
         st   = Pointer(_PropertiesXmlParsingStates.INIT)
-        curp = ''
+        curp = Pointer('')
         # handle XML declaration
         def XML_DECL_CB(xmld:xml.Declaration):
 
@@ -76,26 +61,25 @@ class Properties:
 
             if st.x is _PropertiesXmlParsingStates.INIT:
 
-                if name != PropertiesElementDefinition.name: 
-                    
-                    raise NotAPropertiesElementError(f'found at root an element other than Properties: {name}')
+                if name !=      Definition.PROPS_NAME:                                raise NotAPropertiesElementError     (f'found at root an element other than {Definition.PROPS_NAME}: {name}')
+                if not all(a in Definition.PROPS_ATTR_NAMES.values() for a in attrs): raise PropertiesElementAttributeError(f'got unexpected attributes of {Definition.PROPS_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.PROPS_ATTR_NAMES.values(), attrs)))}')
                 
-                self.xns    = attrs[PropertiesElementAttributeNames.XMLNS]
-                self.v_type = attrs[PropertiesElementAttributeNames.V_TYPE]
+                self.xns    = attrs[Definition.PROPS_ATTR_NAMES.XMLNS]
+                self.v_type = attrs[Definition.PROPS_ATTR_NAMES.XMLNS_V_TYPE]
                 st.x        = _PropertiesXmlParsingStates.IN_PROPERTIES
             
             elif st.x is _PropertiesXmlParsingStates.IN_PROPERTIES:
 
                 if attrs: raise PropertyElementAttributeError(f'property element must have NO attributes - got {', '.join(map(repr,attrs))}')
-                curp = name
+                curp.x = name
 
         xp.StartElementHandler = START_ELEM_HANDLER
         xp.EndElementHandler   = lambda name: None
         def DEFAULT_HANDLER(data: str):
 
-            if curp:
+            if curp.x:
 
-                self.items[curp] = data
+                self.items[curp.x] = data
 
         xp.DefaultHandler = DEFAULT_HANDLER
         # do it
@@ -109,8 +93,9 @@ class Properties:
         """
 
         f.write(self.xmld.to_xml().encode())
-        f.write(as_xml_elem(name =PropertiesElementDefinition.name, 
-                            attrs={PropertiesElementAttributeNames.XMLNS :self.xns,
-                                   PropertiesElementAttributeNames.V_TYPE:self.v_type}, 
+        f.write(b'\n')
+        f.write(as_xml_elem(name =Definition.PROPS_NAME, 
+                            attrs={Definition.PROPS_ATTR_NAMES.XMLNS :self.xns,
+                                   Definition.PROPS_ATTR_NAMES.XMLNS_V_TYPE:self.v_type}, 
                             inner=''.join(as_xml_elem(name=p, inner=v, force_explicit_end=True) for p,v in self.items.items())).encode())
         

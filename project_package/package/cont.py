@@ -5,78 +5,35 @@ from   xml.parsers import expat
 from .      import xml
 from ._util import *
 
-# XML
-
-class DefaultElementDefinition:
+class Definition:
     
-    """
-    Define the default XML element
-    """
+    TYPES_NAME = 'Types'
+    class TYPES_ATTR_NAME:
 
-    name = 'Default'
+        _E :Enum[str] = Enum()
+        @classmethod
+        def values(clas): return clas._E.values()
+        XMLNS = _E('xmlns')
 
-class DefaultElementAttributeNames:
+    TDEFAULT_NAME  = 'Default'
+    class TDEFAULT_ATTR_NAMES:
 
-    """
-    Enumerate the names of all of the attributes of the default XML element
-    """
-
-    _e :Enum[str] = Enum()
-    @classmethod
-    def values(clas): return clas._e.values()
-
-    # enum BEGIN
-    EXTENSION    = _e('Extension')
-    CONTENT_TYPE = _e('ContentType')
-    # enum END
-
-class OverrideElementDefinition:
+        _E :Enum[str] = Enum()
+        @classmethod
+        def values(clas): return clas._E.values()
+        EXTENSION    = _E('Extension')
+        CONTENT_TYPE = _E('ContentType')
     
-    """
-    Define the override XML element
-    """
+    TOVERRIDE_NAME = "Override"
+    class TOVERRIDE_ATTR_NAMES:
 
-    name = 'Override'
+        _E :Enum[str] = Enum()
+        @classmethod
+        def values(clas): return clas._E.values()
+        PART_NAME    = _E('PartName')
+        CONTENT_TYPE = _E('ContentType')
 
-class OverrideElementAttributeNames:
-
-    """
-    Enumerate the names of all of the attributes of the override XML element
-    """
-
-    _e :Enum[str] = Enum()
-    @classmethod
-    def values(clas): return clas._e.values()
-
-    # enum BEGIN
-    PART_NAME    = _e('PartName')
-    CONTENT_TYPE = _e('ContentType')
-    # enum END
-
-@dataclasses.dataclass
-class TypesElementDefinition:
-
-    """
-    Define the types XML element
-    """
-
-    name = 'Types'
-
-class TypesElementAttributeNames:
-
-    """
-    Enumerate the names of all of the attributes of the types XML element
-    """
-
-    _e :Enum[str] = Enum()
-    @classmethod
-    def values(clas): return clas._e.values()
-
-    # enum BEGIN
-    XMLNS = _e('xmlns')
-    # enum END
-
-# XML parsing
+# Parsing
 
 class _TypesXmlParsingState : pass
 class _TypesXmlParsingStates:
@@ -99,9 +56,9 @@ class Default:
 
     def to_xml(self, extension:str):
 
-        return as_xml_elem(name =DefaultElementDefinition.name,
-                           attrs={DefaultElementAttributeNames.EXTENSION   : extension,
-                                  DefaultElementAttributeNames.CONTENT_TYPE: self.content_type})
+        return as_xml_elem(name =Definition.TDEFAULT_NAME,
+                           attrs={Definition.TDEFAULT_ATTR_NAMES.EXTENSION   : extension,
+                                  Definition.TDEFAULT_ATTR_NAMES.CONTENT_TYPE: self.content_type})
         
 @dataclasses.dataclass
 class Override:
@@ -110,9 +67,9 @@ class Override:
 
     def to_xml(self, part_name:str):
 
-        return as_xml_elem(name =OverrideElementDefinition.name,
-                           attrs={OverrideElementAttributeNames.PART_NAME   : part_name,
-                                  OverrideElementAttributeNames.CONTENT_TYPE: self.content_type})
+        return as_xml_elem(name =Definition.TOVERRIDE_NAME,
+                           attrs={Definition.TOVERRIDE_ATTR_NAMES.PART_NAME   : part_name,
+                                  Definition.TOVERRIDE_ATTR_NAMES.CONTENT_TYPE: self.content_type})
     
 @dataclasses.dataclass
 class Types:
@@ -143,38 +100,33 @@ class Types:
 
             if st.x is _TypesXmlParsingStates.INIT:
 
-                if name != TypesElementDefinition.name: 
-                    
-                    raise NotATypesElementError(f'found at root an element other than Types: {name}')
+                if name != Definition.TYPES_NAME:  raise NotATypesElementError(f'found at root an element other than {Definition.TYPES_NAME}: {name}')
                 
-                self.xns = attrs[TypesElementAttributeNames.XMLNS]
+                self.xns = attrs[Definition.TYPES_ATTR_NAME.XMLNS]
                 st.x     = _TypesXmlParsingStates.IN_TYPES
             
             elif st.x is _TypesXmlParsingStates.IN_TYPES:
 
-                if name == DefaultElementDefinition.name:
+                if name == Definition.TDEFAULT_NAME:
 
-                    if not all(a in DefaultElementAttributeNames.values() for a in attrs):
-                        
-                        raise DefaultElementAttributeError(f'got unexpected attributes of default element: {', '.join(map(repr, filter(lambda a: a not in DefaultElementAttributeNames.values(), attrs)))}')
+                    if not all(a in Definition.TDEFAULT_ATTR_NAMES.values() for a in attrs): raise DefaultElementAttributeError(f'got unexpected attributes of {Definition.TDEFAULT_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.TDEFAULT_ATTR_NAMES.values(), attrs)))}')
                 
-                    t      = Default(content_type=attrs[DefaultElementAttributeNames.CONTENT_TYPE])
-                    self.default_by_extension_dict[attrs[DefaultElementAttributeNames.EXTENSION]] \
+                    t      = Default(content_type=attrs[Definition.TDEFAULT_ATTR_NAMES.CONTENT_TYPE])
+                    self.default_by_extension_dict[attrs[Definition.TDEFAULT_ATTR_NAMES.EXTENSION]] \
                            = t
                     
-                elif name == OverrideElementDefinition.name:
+                elif name == Definition.TOVERRIDE_NAME:
 
-                    if not all(a in OverrideElementAttributeNames.values() for a in attrs):
-                        
-                        raise OverrideElementAttributeError(f'got unexpected attributes of default element: {', '.join(map(repr, filter(lambda a: a not in OverrideElementAttributeNames.values(), attrs)))}')
+                    if not all(a in Definition.TOVERRIDE_ATTR_NAMES.values() for a in attrs): raise OverrideElementAttributeError(f'got unexpected attributes of {Definition.TOVERRIDE_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.TOVERRIDE_ATTR_NAMES.values(), attrs)))}')
 
-                    t      = Override(content_type=attrs[OverrideElementAttributeNames.CONTENT_TYPE])
-                    self.override_by_part_name_dict[attrs[OverrideElementAttributeNames.PART_NAME]] \
+                    t      = Override(content_type=attrs[Definition.TOVERRIDE_ATTR_NAMES.CONTENT_TYPE])
+                    self.override_by_part_name_dict[attrs[Definition.TOVERRIDE_ATTR_NAMES.PART_NAME]] \
                            = t
 
                 else:
 
-                    raise NotATypeElementError('found in Types an element that is not a Type')
+                    raise NotATypeElementError(f'found in {Definition.TYPES_NAME} an element that is neither of {repr((Definition.TDEFAULT_NAME, 
+                                                                                                                       Definition.TOVERRIDE_NAME))}')
 
         xp.StartElementHandler = START_ELEM_HANDLER
         # do it
@@ -189,8 +141,8 @@ class Types:
 
         f.write(self.xmld.to_xml().encode())
         f.write(b'\n')
-        f.write(as_xml_elem(name =TypesElementDefinition.name, 
-                            attrs={TypesElementAttributeNames.XMLNS:self.xns}, 
+        f.write(as_xml_elem(name =Definition.TYPES_NAME, 
+                            attrs={Definition.TYPES_ATTR_NAME.XMLNS:self.xns}, 
                             inner=''.join((''.join(t.to_xml(id) for id,t in self.default_by_extension_dict .items()), 
                                            ''.join(t.to_xml(id) for id,t in self.override_by_part_name_dict.items())))).encode())
         

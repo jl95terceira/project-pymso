@@ -1,7 +1,7 @@
 import dataclasses
 import xml.parsers.expat as expat
 
-from .      import cont, xml, rels as rels, docprops as docprops
+from .      import cont, xml, rels, docprops
 from ._util import *
 
 class _DOCX_INTERNAL_FILE_PATHS:
@@ -9,6 +9,7 @@ class _DOCX_INTERNAL_FILE_PATHS:
      RELATIONSHIPS = '_rels/.rels'
      CONTENT_TYPES = '[Content_Types].xml'
      DOCPROPS_APP  = 'docProps/app.xml'
+     DOCPROPS_CORE = 'docProps/core.xml'
 
 @dataclasses.dataclass
 class _DocXData:
@@ -35,23 +36,20 @@ class DocX:
         Load a document from the given file (or from the file with the given name)
         """
 
-        self                    = DocX()
+        self = DocX()
         for fn,f in internal_files(docf):
 
             # relationships
-            if fn == _DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS:
-
-                self._data.rels = rels.Relationships.get(f)
+            if   fn == _DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS: self._data.rels       = rels.Relationships          .get(f)
 
             # content types            
-            elif fn == _DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES:
-
-                self._data.types = cont.Types.get(f)
+            elif fn == _DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES: self._data.types      = cont.Types                  .get(f)
 
             # document properties - app
-            elif fn == _DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP:
+            elif fn == _DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP : self._data.props.app  = docprops.app.Properties     .get(f)
 
-                self._data.props.app = docprops.app.Properties.get(f)
+            # document properties - core
+            elif fn == _DOCX_INTERNAL_FILE_PATHS.DOCPROPS_CORE: self._data.props.core = docprops.core.CoreProperties.get(f)
 
             # other (as element trees - not implemented yet)
             else:
@@ -75,19 +73,16 @@ class DocX:
             return
         
         # relationships
-        with docf.open(_DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS, mode='w') as f:
-
-            self._data.rels.put(f)
+        with docf.open(_DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS, mode='w') as f: self._data.rels      .put(f)
 
         # content types
-        with docf.open(_DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES, mode='w') as f:
+        with docf.open(_DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES, mode='w') as f: self._data.types     .put(f)
 
-            self._data.types.put(f)
+        # document properties - app
+        with docf.open(_DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP , mode='w') as f: self._data.props.app .put(f)
 
-        # content types
-        with docf.open(_DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP, mode='w') as f:
-
-            self._data.props.app.put(f)
+        # document properties - core
+        with docf.open(_DOCX_INTERNAL_FILE_PATHS.DOCPROPS_CORE, mode='w') as f: self._data.props.core.put(f)
 
         # other (as element trees - not implemented yet)
         for fn,et in self._etrees.items():
