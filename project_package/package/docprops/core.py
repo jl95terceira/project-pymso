@@ -49,6 +49,9 @@ class CorePropertiesXmlError             (Exception)             : pass
 class NotACorePropertiesElementError     (CorePropertiesXmlError): pass
 class CorePropertiesElementAttributeError(CorePropertiesXmlError): pass
 class CorePropertyElementNameError       (CorePropertiesXmlError): pass
+class CpAttributeError                   (CorePropertiesXmlError): pass
+class DcAttributeError                   (CorePropertiesXmlError): pass
+class DcTermsAttributeError              (CorePropertiesXmlError): pass
 
 # Objects
 
@@ -83,15 +86,27 @@ class CoreProperties:
 
     def __post_init__(self):
 
-        def _put_cp     (name:str,value:str)                    : self.items_cp     [name] = value
-        def _put_dc     (name:str,value:str)                    : self.items_dc     [name] = value
-        def _put_dcterms(name:str,attrs:dict[str,str],value:str): self.items_dcterms[name] = DcTerms(type=attrs[Definition.DCTERMS_ATTR_NAMES.XSI_TYPE], value=value)
+        def _put_cp     (name:str,attrs:dict[str,str],value:str): 
+            
+            if attrs: raise CpAttributeError(f"{Definition.CPROPS_NS_TYPES.CORE_PROPS} property element ({name}) must have NO attributes - got: {repr(tuple(attrs))}")
+            self.items_cp[name] = value
+
+        def _put_dc     (name:str,attrs:dict[str,str],value:str): 
+            
+            if attrs: raise DcAttributeError(f"{Definition.CPROPS_NS_TYPES.DC_ELEMENTS} property element ({name}) must have NO attributes - got: {repr(tuple(attrs))}")
+            self.items_dc[name] = value
+
+        def _put_dcterms(name:str,attrs:dict[str,str],value:str): 
+            
+            invalid = list(filter(lambda a: a not in Definition.DCTERMS_ATTR_NAMES.values(), attrs))
+            if invalid: raise DcTermsAttributeError(f'got invalid attributes for {Definition.CPROPS_NS_TYPES.DC_TERMS} property element ({name}): {', '.join(map(repr,invalid))}')
+            self.items_dcterms[name] = DcTerms(type=attrs[Definition.DCTERMS_ATTR_NAMES.XSI_TYPE], value=value)
 
         self._core_prop_value_cb_dict:dict[str,typing.Callable[[str,dict[str,str],str],None]] = {
             
-            Definition.CPROPS_NS_TYPES.CORE_PROPS : lambda name,attrs,value: _put_cp     (name      ,value),
-            Definition.CPROPS_NS_TYPES.DC_ELEMENTS: lambda name,attrs,value: _put_dc     (name      ,value),
-            Definition.CPROPS_NS_TYPES.DC_TERMS   : lambda name,attrs,value: _put_dcterms(name,attrs,value),
+            Definition.CPROPS_NS_TYPES.CORE_PROPS : _put_cp,
+            Definition.CPROPS_NS_TYPES.DC_ELEMENTS: _put_dc,
+            Definition.CPROPS_NS_TYPES.DC_TERMS   : _put_dcterms,
 
         }
 
@@ -123,7 +138,7 @@ class CoreProperties:
 
             if st.x is _CorePropertiesXmlParsingStates.INIT:
 
-                if name !=      Definition.CPROPS_NAME:                         raise NotACorePropertiesElementError     (f'found at root an element other than {Definition.CPROPS_NAME}: {name}')
+                if name !=      Definition.CPROPS_NAME:                                raise NotACorePropertiesElementError     (f'found at root an element other than {Definition.CPROPS_NAME}: {name}')
                 if not all(a in Definition.CPROPS_ATTR_NAMES.values() for a in attrs): raise CorePropertiesElementAttributeError(f'got unexpected attributes of {Definition.CPROPS_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.CPROPS_ATTR_NAMES.values(), attrs)))}')
 
                 for namespace_type in Definition.CPROPS_NS_TYPES.values():

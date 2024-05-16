@@ -62,7 +62,7 @@ class Properties:
             if st.x is _PropertiesXmlParsingStates.INIT:
 
                 if name !=      Definition.PROPS_NAME:                                raise NotAPropertiesElementError     (f'found at root an element other than {Definition.PROPS_NAME}: {name}')
-                if not all(a in Definition.PROPS_ATTR_NAMES.values() for a in attrs): raise PropertiesElementAttributeError(f'got unexpected attributes of {Definition.PROPS_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.PROPS_ATTR_NAMES.values(), attrs)))}')
+                if not all(a in Definition.PROPS_ATTR_NAMES.values() for a in attrs): raise PropertiesElementAttributeError(f'got invalid attributes for {Definition.PROPS_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.PROPS_ATTR_NAMES.values(), attrs)))}')
                 
                 self.xns    = attrs[Definition.PROPS_ATTR_NAMES.XMLNS]
                 self.v_type = attrs[Definition.PROPS_ATTR_NAMES.XMLNS_V_TYPE]
