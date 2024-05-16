@@ -1,7 +1,7 @@
 import dataclasses
 import xml.parsers.expat as expat
 
-from .      import cont, xml, rels, docprops
+from .      import content_types, xml, rels, docprops
 from ._util import *
 
 class _DOCX_INTERNAL_FILE_PATHS:
@@ -14,9 +14,9 @@ class _DOCX_INTERNAL_FILE_PATHS:
 @dataclasses.dataclass
 class _DocXData:
 
-    types:cont.Types           = dataclasses.field(default_factory=lambda: cont.Types        ())
-    rels :'rels.Relationships' = dataclasses.field(default_factory=lambda: rels.Relationships())
-    props:'docprops.DocProps'  = dataclasses.field(default_factory=lambda: docprops.DocProps ())
+    types:'content_types.Types' = dataclasses.field(default_factory=lambda: content_types.Types())
+    rels :'rels.Relationships'  = dataclasses.field(default_factory=lambda: rels.Relationships ())
+    props:'docprops.DocProps'   = dataclasses.field(default_factory=lambda: docprops.DocProps  ())
 
 class DocX:
 
@@ -43,7 +43,7 @@ class DocX:
             if   fn == _DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS: self._data.rels       = rels.Relationships          .get(f)
 
             # content types            
-            elif fn == _DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES: self._data.types      = cont.Types                  .get(f)
+            elif fn == _DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES: self._data.types      = content_types.Types         .get(f)
 
             # document properties - app
             elif fn == _DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP : self._data.props.app  = docprops.app.Properties     .get(f)
