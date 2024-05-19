@@ -120,11 +120,11 @@ def count_types_all_diff_print(zfn1:str,zfn2:str):
 
             print(f'\n{{{fn}}}')
 
-def print_etree(e:Element, filter:typing.Callable[[Element],bool]=lambda e: True, ind=0):
+def print_etree(e:Node, filter:typing.Callable[[Node],bool]=lambda e: True, ind=0):
 
     if filter(e): 
         
-        print(f"{ind*'-'}{repr(e.name)} {repr(e.args)}")
+        print(f"{ind*'-'}{repr(e.type)} {repr(e.args)}")
 
     for se in e.children:
 
@@ -133,14 +133,14 @@ def print_etree(e:Element, filter:typing.Callable[[Element],bool]=lambda e: True
 @dataclasses.dataclass
 class ElementTreeDiff:
 
-    changed:dict[str,tuple[Element,Element]]
-    new    :dict[str,Element]
+    changed:dict[str,tuple[Node,Node]]
+    new    :dict[str,Node]
     removed:set[str]
 
 def load_etree_map_diff(zfn1:str,zfn2:str):
 
-    etm1 = load_etree_map(zfn1)
-    etm2 = load_etree_map(zfn2)
+    etm1 = load_tree_map(zfn1)
+    etm2 = load_tree_map(zfn2)
     return ElementTreeDiff(changed={fn:(etm1[fn],et,) for fn,et in etm2.items() if fn     in etm1 and et != etm1[fn]},
                            new    ={fn:et             for fn,et in etm2.items() if fn not in etm1},
                            removed={fn                for fn    in etm1         if fn not in etm2})
@@ -189,9 +189,9 @@ if __name__ == '__main__':
         print('\n'.join(fn for fn,f in internal_files(zfn)), end='\n\n')
         #count_types_all_print(zfn) # count all element types
         #count_types_all_print(zfn,filter_name=lambda name: name in {'XmlDecl','StartElementHandler','EndElementHandler','Other'}) # count rarer element types
-        process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f))                                  , print(line_sep()))) # print all
-        #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f))                                  , print(line_sep())) if fn == '_rels/.rels' else None) # print only rels
-        #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_etree(f), filter=lambda e: e.name == "***"), print(line_sep()))) # print only unknown
+        process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_tree(f))                                  , print(line_sep()))) # print all
+        #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_tree(f))                                  , print(line_sep())) if fn == '_rels/.rels' else None) # print only rels
+        #process(zfn, lambda fn,f: (print(line_sep(fn)),print_etree(load_tree(f), filter=lambda e: e.name == "***"), print(line_sep()))) # print only unknown
         #print(docx._rels)
 
 

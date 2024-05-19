@@ -33,11 +33,11 @@ class Definition:
 
 # Parsing
 
-class _RelationshipsXmlParsingState : pass
-class _RelationshipsXmlParsingStates:
+class _RelationshipsXmlParsingState:
 
-    INIT             = _RelationshipsXmlParsingState()
-    IN_RELATIONSHIPS = _RelationshipsXmlParsingState()
+    def __init__(self):
+
+        self.in_relationships = False
 
 class RelationshipsXmlError             (Exception)            : pass
 class NotARelationshipsElementError     (RelationshipsXmlError): pass
@@ -55,8 +55,8 @@ class Relationship:
     """
     # TODO: confirm the above and add detail
 
-    type  :str = dataclasses.field(default=MISSING)
-    target:str = dataclasses.field(default=MISSING)
+    type  :str
+    target:str
 
     def to_xml(self, id:str):
 
@@ -85,7 +85,7 @@ class Relationships:
 
         self = Relationships()
         xp   = expat.ParserCreate()
-        st   = Pointer(_RelationshipsXmlParsingStates.INIT)
+        st   = _RelationshipsXmlParsingState()
         # handle XML declaration
         def XML_DECL_CB(xmld:xml.Declaration):
 
@@ -95,15 +95,15 @@ class Relationships:
         # handle elements
         def START_ELEM_HANDLER(name :str, attrs:dict[str,str]):
 
-            if st.x is _RelationshipsXmlParsingStates.INIT:
+            if not st.in_relationships:
 
                 if name !=      Definition.RELS_NAME:                                raise NotARelationshipsElementError     (f'found at root an element other than {Definition.RELS_NAME}: {name}')
                 if not all(a in Definition.RELS_ATTR_NAMES.values() for a in attrs): raise RelationshipsElementAttributeError(f'got unexpected attributes of relationship element: {', '.join(map(repr, filter(lambda a: a not in Definition.RELS_ATTR_NAMES.values(), attrs)))}')
 
                 self.xns = attrs[Definition.RELS_ATTR_NAMES.XMLNS]
-                st.x     = _RelationshipsXmlParsingStates.IN_RELATIONSHIPS
+                st.in_relationships = True
             
-            elif st.x is _RelationshipsXmlParsingStates.IN_RELATIONSHIPS:
+            else:
 
                 if name !=      Definition.REL_NAME:                                raise NotARelationshipElementError     (f'found in {Definition.RELS_NAME} an element that is not a {Definition.REL_NAME}: {name}')
                 if not all(a in Definition.REL_ATTR_NAMES.values() for a in attrs): raise RelationshipElementAttributeError(f'got unexpected attributes of relationship element: {', '.join(map(repr, filter(lambda a: a not in Definition.REL_ATTR_NAMES.values(), attrs)))}')

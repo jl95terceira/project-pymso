@@ -18,11 +18,11 @@ class Definition:
 
 # Parsing
 
-class _PropertiesXmlParsingState : pass
-class _PropertiesXmlParsingStates:
+class _PropertiesXmlParsingState : 
+    
+    def __init__(self):
 
-    INIT          = _PropertiesXmlParsingState()
-    IN_PROPERTIES = _PropertiesXmlParsingState()
+        self.in_properties = False
 
 class PropertiesXmlError             (Exception)         : pass
 class NotAPropertiesElementError     (PropertiesXmlError): pass
@@ -48,7 +48,7 @@ class Properties:
 
         self = Properties()
         xp   = expat.ParserCreate()
-        st   = Pointer(_PropertiesXmlParsingStates.INIT)
+        st   = _PropertiesXmlParsingState()
         curp = Pointer('')
         # handle XML declaration
         def XML_DECL_CB(xmld:xml.Declaration):
@@ -59,16 +59,16 @@ class Properties:
         # handle elements
         def START_ELEM_HANDLER(name :str, attrs:dict[str,str]):
 
-            if st.x is _PropertiesXmlParsingStates.INIT:
+            if not st.in_properties:
 
                 if name !=      Definition.PROPS_NAME:                                raise NotAPropertiesElementError     (f'found at root an element other than {Definition.PROPS_NAME}: {name}')
                 if not all(a in Definition.PROPS_ATTR_NAMES.values() for a in attrs): raise PropertiesElementAttributeError(f'got invalid attributes for {Definition.PROPS_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.PROPS_ATTR_NAMES.values(), attrs)))}')
                 
                 self.xns    = attrs[Definition.PROPS_ATTR_NAMES.XMLNS]
                 self.v_type = attrs[Definition.PROPS_ATTR_NAMES.XMLNS_V_TYPE]
-                st.x        = _PropertiesXmlParsingStates.IN_PROPERTIES
+                st.in_properties = True
             
-            elif st.x is _PropertiesXmlParsingStates.IN_PROPERTIES:
+            else:
 
                 if attrs: raise PropertyElementAttributeError(f'property element must have NO attributes - got {', '.join(map(repr,attrs))}')
                 curp.x = name

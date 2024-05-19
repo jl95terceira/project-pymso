@@ -35,11 +35,11 @@ class Definition:
 
 # Parsing
 
-class _TypesXmlParsingState : pass
-class _TypesXmlParsingStates:
+class _TypesXmlParsingState : 
+    
+    def __init__(self):
 
-    INIT     = _TypesXmlParsingState()
-    IN_TYPES = _TypesXmlParsingState()
+        self.in_types = False
 
 class TypesXmlError                (Exception)    : pass
 class NotATypesElementError        (TypesXmlError): pass
@@ -52,7 +52,7 @@ class OverrideElementAttributeError(TypesXmlError): pass
 @dataclasses.dataclass
 class Default:
 
-    content_type:str = dataclasses.field(default=MISSING)
+    content_type:str
 
     def to_xml(self, extension:str):
 
@@ -63,7 +63,7 @@ class Default:
 @dataclasses.dataclass
 class Override:
 
-    content_type:str = dataclasses.field(default=MISSING)
+    content_type:str
 
     def to_xml(self, part_name:str):
 
@@ -88,7 +88,7 @@ class Types:
 
         self = Types()
         xp   = expat.ParserCreate()
-        st   = Pointer(_TypesXmlParsingStates.INIT)
+        st   = _TypesXmlParsingState()
         # handle XML declaration
         def XML_DECL_CB(xmld:xml.Declaration):
 
@@ -98,14 +98,14 @@ class Types:
         # handle elements
         def START_ELEM_HANDLER(name :str, attrs:dict[str,str]):
 
-            if st.x is _TypesXmlParsingStates.INIT:
+            if not st.in_types:
 
                 if name != Definition.TYPES_NAME:  raise NotATypesElementError(f'found at root an element other than {Definition.TYPES_NAME}: {name}')
                 
-                self.xns = attrs[Definition.TYPES_ATTR_NAME.XMLNS]
-                st.x     = _TypesXmlParsingStates.IN_TYPES
+                self.xns    = attrs[Definition.TYPES_ATTR_NAME.XMLNS]
+                st.in_types = True
             
-            elif st.x is _TypesXmlParsingStates.IN_TYPES:
+            else:
 
                 if name == Definition.TDEFAULT_NAME:
 

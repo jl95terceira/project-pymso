@@ -39,11 +39,11 @@ for namespace_type in Definition.CPROPS_NS_TYPES.values(): Definition.CPROPS_ATT
 
 # Parsing
 
-class _CorePropertiesXmlParsingState : pass
-class _CorePropertiesXmlParsingStates:
+class _CorePropertiesXmlParsingState : 
+    
+    def __init__(self):
 
-    INIT               = _CorePropertiesXmlParsingState()
-    IN_CORE_PROPERTIES = _CorePropertiesXmlParsingState()
+        self.in_core_properties = False
 
 class CorePropertiesXmlError             (Exception)             : pass
 class NotACorePropertiesElementError     (CorePropertiesXmlError): pass
@@ -58,8 +58,8 @@ class DcTermsAttributeError              (CorePropertiesXmlError): pass
 @dataclasses.dataclass
 class DcTerms:
 
-    type :str = dataclasses.field(default=MISSING)
-    value:str = dataclasses.field(default=MISSING)
+    type :str
+    value:str
 
 _CORE_PROPERTY_NAMESPACE_AND_NAME_RE  = re.compile('^(.*?):(.*)$')
 def _CORE_PROPERTY_NAMESPACE_AND_NAME(a:str):
@@ -75,11 +75,11 @@ def _CORE_PROPERTY_NAMESPACE_AND_NAME(a:str):
 class CoreProperties:
 
     xmld         :xml.Declaration   = dataclasses.field(default_factory=lambda: xml.Declaration())
-    xns_by_type_dict:dict[str,str]  = dataclasses.field(default_factory=lambda: {Definition.CPROPS_NS_TYPES.CORE_PROPS :"http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
-                                                                                 Definition.CPROPS_NS_TYPES.DC_ELEMENTS:"http://purl.org/dc/elements/1.1/",
-                                                                                 Definition.CPROPS_NS_TYPES.DC_TERMS   :"http://purl.org/dc/terms/",
-                                                                                 Definition.CPROPS_NS_TYPES.DCMI_TYPE  :"http://purl.org/dc/dcmitype/",
-                                                                                 Definition.CPROPS_NS_TYPES.XML_SCHEMA :"http://www.w3.org/2001/XMLSchema-instance"})
+    ns_dict      :dict[str,str]  = dataclasses.field(default_factory=lambda: {Definition.CPROPS_NS_TYPES.CORE_PROPS :"http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+                                                                              Definition.CPROPS_NS_TYPES.DC_ELEMENTS:"http://purl.org/dc/elements/1.1/",
+                                                                              Definition.CPROPS_NS_TYPES.DC_TERMS   :"http://purl.org/dc/terms/",
+                                                                              Definition.CPROPS_NS_TYPES.DCMI_TYPE  :"http://purl.org/dc/dcmitype/",
+                                                                              Definition.CPROPS_NS_TYPES.XML_SCHEMA :"http://www.w3.org/2001/XMLSchema-instance"})
     items_cp     :dict[str,str]     = dataclasses.field(default_factory=lambda: {})
     items_dc     :dict[str,str]     = dataclasses.field(default_factory=lambda: {})
     items_dcterms:dict[str,DcTerms] = dataclasses.field(default_factory=lambda: {})
@@ -118,12 +118,12 @@ class CoreProperties:
     def get(f:io.BytesIO):
 
         """
-        Load content types from an XML file
+        Load core properties from an XML file
         """
 
         self = CoreProperties()
         xp   = expat.ParserCreate()
-        st   = Pointer(_CorePropertiesXmlParsingStates.INIT)
+        st   = _CorePropertiesXmlParsingState()
         curp     = Pointer('')
         curpns   = Pointer('')
         curattrs = Pointer[dict[str,str]]({})
@@ -136,7 +136,7 @@ class CoreProperties:
         # handle elements
         def START_ELEM_HANDLER(name :str, attrs:dict[str,str]):
 
-            if st.x is _CorePropertiesXmlParsingStates.INIT:
+            if not st.in_core_properties:
 
                 if name !=      Definition.CPROPS_NAME:                                raise NotACorePropertiesElementError     (f'found at root an element other than {Definition.CPROPS_NAME}: {name}')
                 if not all(a in Definition.CPROPS_ATTR_NAMES.values() for a in attrs): raise CorePropertiesElementAttributeError(f'got unexpected attributes of {Definition.CPROPS_NAME} element: {', '.join(map(repr, filter(lambda a: a not in Definition.CPROPS_ATTR_NAMES.values(), attrs)))}')
@@ -146,11 +146,11 @@ class CoreProperties:
                     a = f'xmlns:{namespace_type}'
                     if a in attrs:
 
-                        self.xns_by_type_dict[namespace_type] = attrs[a]
+                        self.ns_dict[namespace_type] = attrs[a]
 
-                st.x = _CorePropertiesXmlParsingStates.IN_CORE_PROPERTIES
+                st.in_core_properties = True
             
-            elif st.x is _CorePropertiesXmlParsingStates.IN_CORE_PROPERTIES:
+            else:
 
                 curpns.x,curp.x = _CORE_PROPERTY_NAMESPACE_AND_NAME(name)
                 curattrs.x      = attrs
@@ -177,7 +177,7 @@ class CoreProperties:
         f.write(self.xmld.to_xml().encode())
         f.write(b'\n')
         f.write(as_xml_elem(name =Definition.CPROPS_NAME, 
-                            attrs={f'xmlns:{nst}':ns for nst,ns in self.xns_by_type_dict.items()}, 
+                            attrs={f'xmlns:{nst}':ns for nst,ns in self.ns_dict.items()}, 
                             inner=''.join((
                                 
                                 ''.join(as_xml_elem(name=f'{Definition.CPROPS_NS_TYPES.CORE_PROPS }:{p}', inner=v,                                                             force_explicit_end=True) for p,v in self.items_cp     .items()),
@@ -185,4 +185,3 @@ class CoreProperties:
                                 ''.join(as_xml_elem(name=f'{Definition.CPROPS_NS_TYPES.DC_TERMS   }:{p}', inner=v.value, attrs={Definition.DCTERMS_ATTR_NAMES.XSI_TYPE:v.type}, force_explicit_end=True) for p,v in self.items_dcterms.items()),
                                 
                             ))).encode())
-        
