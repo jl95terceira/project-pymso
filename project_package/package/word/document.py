@@ -11,11 +11,14 @@ class Definition:
 
     class Names:
 
-        DOCUMENT   = 'w:document'
-        BODY       = 'w:body'
-        PARAGRAPH  = 'w:p'
-        TABLE      = 'w:tbl'
-        SECTION_PR = 'w:sectPr'
+        DOCUMENT     = 'w:document'
+        BODY         = 'w:body'
+        PARAGRAPH    = 'w:p'
+        TABLE        = 'w:tbl'
+        SECTION_PR   = 'w:sectPr'
+        PARAGRAPH_PR = 'w:pPr'
+        RUN          = 'w:r'
+        PROOF_ERROR  = 'w:proofErr'
 
     class AttrNames:
 
@@ -60,10 +63,13 @@ class _DocumentXmlParsingState :
         self.unstacked:typing.Any = None
         self.start_elem_handling_dict:dict[str,typing.Callable[[dict[str,str]],None]] = {
 
-            Definition.Names.BODY      :self._handle_body,
-            Definition.Names.PARAGRAPH :self._handle_para,
-            Definition.Names.TABLE     :self._handle_table,
-            Definition.Names.SECTION_PR:self._handle_section_pr,
+            Definition.Names.BODY           :self._handle_body,
+            Definition.Names.PARAGRAPH      :self._handle_para,
+            Definition.Names.TABLE          :self._handle_table,
+            Definition.Names.SECTION_PR     :self._handle_section_pr,
+            Definition.Names.PARAGRAPH_PR   :self._handle_paragraph_pr,
+            Definition.Names.RUN            :self._handle_run,
+            Definition.Names.PROOF_ERROR    :self._handle_proof_err,
         }
 
     def _cur_name   (self): return type(self.stack[-1]).__name__
@@ -105,17 +111,57 @@ class _DocumentXmlParsingState :
     def _handle_section_pr(self, attrs:dict[str,str]):
 
         # TODO: update when SectionProperties no longer is generic element
-        table = SectionProperties(name=Definition.Names.SECTION_PR, attrs=attrs)
+        section_pr = SectionProperties(name=Definition.Names.SECTION_PR, attrs=attrs)
         cur = self.stack[-1]
-        if   isinstance(cur, Body):          cur.elements.append(table)
-        elif isinstance(cur, GenericParent): cur.children.append(table)
+        if   isinstance(cur, Body):          cur.elements.append(section_pr)
+        elif isinstance(cur, Paragraph):     cur.elements.append(section_pr)
+        elif isinstance(cur, GenericParent): cur.children.append(section_pr)
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.SECTION_PR} element unexpected as child of {self._cur_name()} element')
-        self.stack.append(table)
+        self.stack.append(section_pr)
+
+    def _handle_paragraph_pr(self, attrs:dict[str,str]):
+
+        # TODO: update when SectionProperties no longer is generic element
+        paragraph_pr = ParagraphProperties(name=Definition.Names.PARAGRAPH_PR, attrs=attrs)
+        cur = self.stack[-1]
+        if   isinstance(cur, Paragraph):     cur.properties = paragraph_pr
+        elif isinstance(cur, GenericParent): cur.children.append(paragraph_pr)
+        else:                                raise DocumentXmlSchemaError(f'{Definition.Names.PARAGRAPH_PR} element unexpected as child of {self._cur_name()} element')
+        self.stack.append(paragraph_pr)
+
+    def _handle_run(self, attrs:dict[str,str]):
+
+        # TODO: update when SectionProperties no longer is generic element
+        run = Run(name=Definition.Names.RUN, attrs=attrs)
+        cur = self.stack[-1]
+        if   isinstance(cur, Paragraph):     cur.elements.append(run)
+        elif isinstance(cur, GenericParent): cur.children.append(run)
+        else:                                raise DocumentXmlSchemaError(f'{Definition.Names.RUN} element unexpected as child of {self._cur_name()} element')
+        self.stack.append(run)
+
+    def _handle_proof_err(self, attrs:dict[str,str]):
+
+        # TODO: update when SectionProperties no longer is generic element
+        proof_err = ProofErr(name=Definition.Names.PROOF_ERROR, attrs=attrs)
+        cur = self.stack[-1]
+        if   isinstance(cur, Paragraph):     cur.elements.append(proof_err)
+        elif isinstance(cur, GenericParent): cur.children.append(proof_err)
+        else:                                raise DocumentXmlSchemaError(f'{Definition.Names.PROOF_ERROR} element unexpected as child of {self._cur_name()} element')
+        self.stack.append(proof_err)
 
 # Objects
 
 @dataclasses.dataclass
-class Paragraph(GenericParent): # TODO: remove inheritance from generic type
+class ParagraphProperties(GenericElement): pass # TODO: remove inheritance from generic type
+
+@dataclasses.dataclass
+class Run(GenericElement): pass # TODO: remove inheritance from generic type
+
+@dataclasses.dataclass
+class ProofErr(GenericElement): pass # TODO: remove inheritance from generic type
+
+@dataclasses.dataclass
+class Paragraph:    
 
     id            :str
     text_id       :str
@@ -123,6 +169,8 @@ class Paragraph(GenericParent): # TODO: remove inheritance from generic type
     rsid_r_default:str
     rsid_p        :str
     rsid_r_pr     :str
+    properties    :ParagraphProperties = dataclasses.field(default        =None)
+    elements      :list[ToXmlAble]     = dataclasses.field(default_factory=lambda: [])
 
     @typing.override
     def to_xml(self):
@@ -134,7 +182,8 @@ class Paragraph(GenericParent): # TODO: remove inheritance from generic type
                                                   (Definition.AttrNames.PARAGRAPH.RSID_R_DEFAULT ,self.rsid_r_default),
                                                   (Definition.AttrNames.PARAGRAPH.RSID_P         ,self.rsid_p),
                                                   (Definition.AttrNames.PARAGRAPH.RSID_R_PR      ,self.rsid_r_pr)) if v is not None},
-                           inner=''.join(map(to_xml, self.children)))
+                           inner=''.join((self.properties.to_xml(), 
+                                          ''.join(map(to_xml, self.elements)),)))
 
 @dataclasses.dataclass
 class Table(GenericElement): pass # TODO: remove inheritance from generic type
@@ -205,7 +254,7 @@ class Document:
 
                     else:
 
-                        raise NotImplementedError(f'cannot append generic element {name} ({attrs}) to non-existent children list of {type(cur).__name__}')
+                        raise NotImplementedError(f'cannot append generic element {name} ({attrs}) to children of non-parent {type(cur).__name__}')
 
         xp.StartElementHandler = START_ELEM_HANDLER
         def END_ELEM_HANDLER(name: str):
@@ -221,7 +270,7 @@ class Document:
 
                 cur.children.append(GenericData(data))    
                 
-            else: raise NotImplementedError(f'cannot append generic data {data} to non-existent children list of {type(cur).__name__}')
+            else: raise NotImplementedError(f'cannot append generic data {data} to children of non-parent {type(cur).__name__}')
             
         xp.DefaultHandler = DEFAULT_HANDLER
         # do it
