@@ -202,3 +202,7 @@ class GenericData(ToXmlAble):
      def to_xml(self):
          
          return self.data
+
+def ifinstance[T](t:typing.Type[T], iterable:typing.Iterable) -> typing.Iterable[T]: 
+     
+     return filter(lambda x: isinstance(x, t), iterable)

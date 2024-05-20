@@ -86,7 +86,7 @@ class _DocumentXmlParsingState :
     def _handle_para        (self, attrs:dict[str,str]):
 
         if not all(a in Definition.AttrNames.PARAGRAPH.values() for a in attrs): raise ParagraphElementAttributeError(f'got unexpected attributes of paragraph element: {', '.join(map(repr, filter(lambda a: a not in Definition.AttrNames.PARAGRAPH.values(), attrs)))}')
-        para = Paragraph(id             =attrs    [Definition.AttrNames.PARAGRAPH.PARA_ID],
+        para = ParagraphData(id             =attrs    [Definition.AttrNames.PARAGRAPH.PARA_ID],
                          text_id        =attrs    [Definition.AttrNames.PARAGRAPH.TEXT_ID],
                          rsid_r         =attrs    [Definition.AttrNames.PARAGRAPH.RSID_R],
                          rsid_r_default =attrs    [Definition.AttrNames.PARAGRAPH.RSID_R_DEFAULT],
@@ -114,7 +114,7 @@ class _DocumentXmlParsingState :
         section_pr = SectionProperties(name=Definition.Names.SECTION_PR, attrs=attrs)
         cur = self.stack[-1]
         if   isinstance(cur, Body):          cur.elements.append(section_pr)
-        elif isinstance(cur, Paragraph):     cur.elements.append(section_pr)
+        elif isinstance(cur, ParagraphData):     cur.elements.append(section_pr)
         elif isinstance(cur, GenericParent): cur.children.append(section_pr)
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.SECTION_PR} element unexpected as child of {self._cur_name()} element')
         self.stack.append(section_pr)
@@ -124,7 +124,7 @@ class _DocumentXmlParsingState :
         # TODO: update when SectionProperties no longer is generic element
         paragraph_pr = ParagraphProperties(name=Definition.Names.PARAGRAPH_PR, attrs=attrs)
         cur = self.stack[-1]
-        if   isinstance(cur, Paragraph):     cur.properties = paragraph_pr
+        if   isinstance(cur, ParagraphData):     cur.properties = paragraph_pr
         elif isinstance(cur, GenericParent): cur.children.append(paragraph_pr)
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.PARAGRAPH_PR} element unexpected as child of {self._cur_name()} element')
         self.stack.append(paragraph_pr)
@@ -132,9 +132,9 @@ class _DocumentXmlParsingState :
     def _handle_run         (self, attrs:dict[str,str]):
 
         # TODO: update when SectionProperties no longer is generic element
-        run = Run(name=Definition.Names.RUN, attrs=attrs)
+        run = RunData(name=Definition.Names.RUN, attrs=attrs)
         cur = self.stack[-1]
-        if   isinstance(cur, Paragraph):     cur.elements.append(run)
+        if   isinstance(cur, ParagraphData):     cur.elements.append(run)
         elif isinstance(cur, GenericParent): cur.children.append(run)
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.RUN} element unexpected as child of {self._cur_name()} element')
         self.stack.append(run)
@@ -144,24 +144,24 @@ class _DocumentXmlParsingState :
         # TODO: update when SectionProperties no longer is generic element
         proof_err = ProofErr(name=Definition.Names.PROOF_ERROR, attrs=attrs)
         cur = self.stack[-1]
-        if   isinstance(cur, Paragraph):     cur.elements.append(proof_err)
+        if   isinstance(cur, ParagraphData):     cur.elements.append(proof_err)
         elif isinstance(cur, GenericParent): cur.children.append(proof_err)
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.PROOF_ERROR} element unexpected as child of {self._cur_name()} element')
         self.stack.append(proof_err)
 
-# Objects
+# Data Objects
 
 @dataclasses.dataclass
 class ParagraphProperties(GenericElement): pass # TODO: remove inheritance from generic type
 
 @dataclasses.dataclass
-class Run(GenericElement): pass # TODO: remove inheritance from generic type
+class RunData(GenericElement): pass # TODO: remove inheritance from generic type
 
 @dataclasses.dataclass
 class ProofErr(GenericElement): pass # TODO: remove inheritance from generic type
 
 @dataclasses.dataclass
-class Paragraph:    
+class ParagraphData:    
 
     id            :str
     text_id       :str
@@ -285,3 +285,41 @@ class Document:
                             attrs={**{f'xmlns:{nst}':ns for nst,ns in self.ns_dict.items()},
                                    Definition.AttrNames.DOCUMENT.IGNORABLE:' '.join(self.ignorable)}, 
                             inner=self.body.to_xml()).encode())
+
+# API
+
+class Run:
+
+    def __init__(self, data:RunData):
+
+        self._data = data
+
+    def text(self):
+
+        for x in ifinstance(GenericElement, self._data.children):
+
+            if x.name == 'w:t': 
+
+                t = x.children[0]
+                if isinstance(t, GenericData):
+
+                    return t.data
+        
+        raise NotImplementedError()
+    
+class Paragraph:
+
+    def __init__(self, data:ParagraphData):
+
+        self._data = data
+    
+    def runs(self): 
+
+        yield from map(Run, ifinstance(RunData, self._data.elements))
+
+    def text(self):
+
+        return ''.join(run.text() for run in self.runs())
+    
+    
+    

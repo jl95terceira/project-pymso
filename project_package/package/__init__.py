@@ -105,3 +105,7 @@ class DocX:
             with docf.open(name=fn, mode='w') as f:
 
                 dump_tree(f, et)
+
+    def paragraphs(self):
+
+        yield from map(word.document.Paragraph, ifinstance(word.document.ParagraphData, self._data.word.document.body.elements))

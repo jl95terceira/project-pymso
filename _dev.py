@@ -182,7 +182,7 @@ if __name__ == '__main__':
     import os
 
     for zfn in (
-        test.OFFICE_FILES.EXAMPLE,
+#        test.OFFICE_FILES.EXAMPLE,
         ):
 
         print(zfn,end='\n\n')
@@ -195,6 +195,11 @@ if __name__ == '__main__':
         #print(docx._rels)
 
 
-    print('\nDiff')
-    count_types_all_diff_print(test.OFFICE_FILES.EXAMPLE,test.OFFICE_FILES.EXAMPLE_COPY)
-    #load_etree_map_diff_print (r'3.docx',r'3.3.docx')
+#    print('\nDiff')
+#    count_types_all_diff_print(test.OFFICE_FILES.EXAMPLE,test.OFFICE_FILES.EXAMPLE_COPY)
+#    load_etree_map_diff_print (r'3.docx',r'3.3.docx')
+    doc = DocX.load_from_file(test.OFFICE_FILES.EXAMPLE)
+    for i,paragraph in enumerate(doc.paragraphs(), start=1):
+        
+        print(f'Paragraph #{i}:')
+        print(f'  {repr(paragraph.text())}')
