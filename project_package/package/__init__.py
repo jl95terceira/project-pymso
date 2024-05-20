@@ -49,6 +49,11 @@ class DocX:
             DOCX_INTERNAL_FILE_PATHS.WORD_DOCUMENT: self._load_word_doc,
         }
 
+    def __eq__(self, other:'DocX'):
+
+        return self._etrees == other._etrees and \
+               self._data   == other._data
+
     @staticmethod
     def load_from_file(docf:zipfile.ZipFile|str):
 
@@ -100,9 +105,3 @@ class DocX:
             with docf.open(name=fn, mode='w') as f:
 
                 dump_tree(f, et)
-
-    def __eq__(self, other:'DocX'):
-
-        return self._etrees == other._etrees and \
-               self._data   == other._data
-
