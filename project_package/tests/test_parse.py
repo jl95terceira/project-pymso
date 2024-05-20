@@ -20,20 +20,20 @@ class Tests(unittest.TestCase):
 
     def test_parse_Content_Types(self):
 
-        self._test(package._DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES, package.content_types.Types.get)
+        self._test(package.DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES, package.content_types.Types.get)
 
     def test_parse_Relationships(self):
 
-        self._test(package._DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS, package.rels.Relationships.get)
+        self._test(package.DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS, package.rels.Relationships.get)
 
     def test_parse_DocProps_App(self):
 
-        self._test(package._DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP, package.docprops.app.Properties.get)
+        self._test(package.DOCX_INTERNAL_FILE_PATHS.DOCPROPS_APP, package.docprops.app.Properties.get)
 
     def test_parse_DocProps_Core(self):
 
-        self._test(package._DOCX_INTERNAL_FILE_PATHS.DOCPROPS_CORE, package.docprops.core.CoreProperties.get)
+        self._test(package.DOCX_INTERNAL_FILE_PATHS.DOCPROPS_CORE, package.docprops.core.CoreProperties.get)
 
     def test_parse_Word_Document(self):
 
-        self._test(package._DOCX_INTERNAL_FILE_PATHS.WORD_DOCUMENT, package.word.document.Document.get)
+        self._test(package.DOCX_INTERNAL_FILE_PATHS.WORD_DOCUMENT, package.word.document.Document.get)
