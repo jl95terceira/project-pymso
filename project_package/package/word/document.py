@@ -72,9 +72,9 @@ class _DocumentXmlParsingState :
             Definition.Names.PROOF_ERROR    :self._handle_proof_err,
         }
 
-    def _cur_name   (self): return type(self.stack[-1]).__name__
+    def _cur_name(self): return type(self.stack[-1]).__name__
 
-    def _handle_body(self, attrs):
+    def _handle_body        (self, attrs:dict[str,str]):
 
         if attrs: raise BodyElementAttributeError(f'got attributes of body element but expected none: {', '.join(map(repr, attrs))}')
         body = Body()
@@ -83,7 +83,7 @@ class _DocumentXmlParsingState :
         else:                           raise DocumentXmlSchemaError(f'{Definition.Names.BODY} element unexpected as child of {self._cur_name()} element')
         self.stack.append(body)
 
-    def _handle_para(self, attrs:dict[str,str]):
+    def _handle_para        (self, attrs:dict[str,str]):
 
         if not all(a in Definition.AttrNames.PARAGRAPH.values() for a in attrs): raise ParagraphElementAttributeError(f'got unexpected attributes of paragraph element: {', '.join(map(repr, filter(lambda a: a not in Definition.AttrNames.PARAGRAPH.values(), attrs)))}')
         para = Paragraph(id             =attrs    [Definition.AttrNames.PARAGRAPH.PARA_ID],
@@ -98,7 +98,7 @@ class _DocumentXmlParsingState :
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.PARAGRAPH} element unexpected as child of {self._cur_name()} element')
         self.stack.append(para)
 
-    def _handle_table(self, attrs:dict[str,str]):
+    def _handle_table       (self, attrs:dict[str,str]):
 
         # TODO: update when Table no longer is generic element
         table = Table(name=Definition.Names.TABLE, attrs=attrs)
@@ -108,7 +108,7 @@ class _DocumentXmlParsingState :
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.TABLE} element unexpected as child of {self._cur_name()} element')
         self.stack.append(table)
 
-    def _handle_section_pr(self, attrs:dict[str,str]):
+    def _handle_section_pr  (self, attrs:dict[str,str]):
 
         # TODO: update when SectionProperties no longer is generic element
         section_pr = SectionProperties(name=Definition.Names.SECTION_PR, attrs=attrs)
@@ -129,7 +129,7 @@ class _DocumentXmlParsingState :
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.PARAGRAPH_PR} element unexpected as child of {self._cur_name()} element')
         self.stack.append(paragraph_pr)
 
-    def _handle_run(self, attrs:dict[str,str]):
+    def _handle_run         (self, attrs:dict[str,str]):
 
         # TODO: update when SectionProperties no longer is generic element
         run = Run(name=Definition.Names.RUN, attrs=attrs)
@@ -139,7 +139,7 @@ class _DocumentXmlParsingState :
         else:                                raise DocumentXmlSchemaError(f'{Definition.Names.RUN} element unexpected as child of {self._cur_name()} element')
         self.stack.append(run)
 
-    def _handle_proof_err(self, attrs:dict[str,str]):
+    def _handle_proof_err   (self, attrs:dict[str,str]):
 
         # TODO: update when SectionProperties no longer is generic element
         proof_err = ProofErr(name=Definition.Names.PROOF_ERROR, attrs=attrs)
