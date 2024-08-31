@@ -24,7 +24,7 @@ Apparently, all Python modules that exist currently that deal with reading & wri
 # Getting around
 
 ```
-project_package -> the project module, which contains the the module proper and the test module
+project -> the project module, which contains the the module proper and the test module
 │
 ├─package -> the module proper under development
 │
@@ -89,9 +89,9 @@ Use <code><a href="https://docs.python.org/3/library/unittest.html">unittest</a>
 python -m unittest
 ```
 
-from the root directory (outside of <code>project_package</code>). 
+from the top directory (the repository's, outside of <code>project</code>). 
 
-To add new tests for the project, place them in module <code>project_structure.tests</code>. From inside the test scripts, import the components to be tested with
+To add new tests for the project, place them in module <code>project.tests</code>. From inside the test scripts, import the components to be tested with
 
 ```
 import ..package
