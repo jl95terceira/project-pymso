@@ -53,7 +53,7 @@ There is a <code>_util</code> module for re-usable source that is not intended a
 
 # Contributing
 
-The plan is to gradually add functionality to this module while maintaining the property of losslessness on writing files back, so that
+The plan is to gradually add functionality to this module while maintaining the property of losslessness for loading / saving cycles from the beginning to the end (?) of development, so that
 
 <ul>
 
