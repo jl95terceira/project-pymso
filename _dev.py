@@ -6,9 +6,9 @@ import os.path
 import typing
 import xml.parsers.expat as expat
 
-from   project_package.package       import *
-from   project_package.package._util import *
-from   project_package.tests         import test
+from   project.package       import *
+from   project.package._util import *
+from   project.tests         import test
 
 def line_sep(prefix:str=''):
 

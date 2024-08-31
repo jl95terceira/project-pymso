@@ -21,7 +21,7 @@ Homepage = "https://github.com/jl95terceira/project-B"
 Issues = "https://github.com/jl95terceira/project-B/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["project_package/package"]
+packages = ["project/package"]
 
 [tool.hatch.build.targets.wheel.sources]
-"project_package/package" = "jl95terceira_msoffice"
+"project/package" = "jl95terceira_msoffice"
