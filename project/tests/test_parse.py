@@ -16,8 +16,10 @@ class Tests(unittest.TestCase):
 
         with package.internal_file_by_name(test.OFFICE_FILES.EXAMPLE, fn) as f:
 
-            parsef(f)
+            parsef(f) # just check that no exception is thrown
 
+    # test that no exceptions are thrown for the various elements
+    
     def test_parse_Content_Types(self): self._test(package.DOCX_INTERNAL_FILE_PATHS.CONTENT_TYPES, package.content_types.Types         .get)
 
     def test_parse_Relationships(self): self._test(package.DOCX_INTERNAL_FILE_PATHS.RELATIONSHIPS, package.rels.Relationships          .get)
