@@ -53,7 +53,7 @@ There is a <code>_util</code> module for re-usable source that is not intended a
 
 # Contributing
 
-The plan is to gradually add functionality to this module while maintaining the property of losslessness for loading / saving cycles from the beginning to the end (?) of development, so that
+The plan is to gradually add functionality to this module while maintaining the property of losslessness for loading / saving, from the beginning to the end (?) of the development of this module, so that
 
 <ul>
 
@@ -89,7 +89,7 @@ Use <code><a href="https://docs.python.org/3/library/unittest.html">unittest</a>
 python -m unittest
 ```
 
-from the top directory (the repository's, outside of <code>project</code>). 
+from the top directory (the repository's, outside of <code>project</code>).
 
 To add new tests for the project, place them in module <code>project.tests</code>. From inside the test scripts, import the components to be tested with
 
