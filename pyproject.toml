@@ -17,8 +17,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/jl95terceira/project-B"
-Issues = "https://github.com/jl95terceira/project-B/issues"
+Homepage = "https://github.com/jl95terceira/project-mso"
+Issues = "https://github.com/jl95terceira/project-mso/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["project/package"]
